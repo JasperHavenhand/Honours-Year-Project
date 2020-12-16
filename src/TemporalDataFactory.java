@@ -1,3 +1,5 @@
+import java.io.File;
+
 import org.gradoop.flink.io.api.DataSource;
 
 /**
@@ -6,14 +8,31 @@ import org.gradoop.flink.io.api.DataSource;
  *
  */
 public class TemporalDataFactory {
+	
 	/**
 	 * 
 	 * @param inputURI
 	 * @param inputType
-	 * @return
+	 * @param sourceName
+	 * @return org.gradoop.flink.io.api.DataSource
 	 */
-	public static DataSource createCSVDataSource(String inputURI, String inputType) {
+	public static DataSource createCSVDataSource(String inputURI, String inputType, String sourceName) {
 		
-		return null;
+		DataSource dataSource = null;
+		File DataFolder = null;
+		
+		switch(inputType.toLowerCase()) {
+			case "nsense":
+				
+				break;
+				
+			default:
+				
+				break;
+		}
+		
+		return dataSource;
+		
 	}
+	
 }

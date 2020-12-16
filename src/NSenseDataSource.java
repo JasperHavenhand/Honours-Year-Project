@@ -5,8 +5,12 @@
  */
 public final class NSenseDataSource implements ITemporalDataSource {
 	
-	String rootURI;
+	private String rootURI;
 	String[] graphs, vertices, edges, metaData;
+	
+	public NSenseDataSource(String inputURI) {
+		rootURI = inputURI;
+	}
 	
 	public String[] getGraphs() {
 		return graphs;
