@@ -3,7 +3,7 @@
  * @author Jasper Havenhand
  *
  */
-public final class NSenseDataSource implements ITemporalDataSource {
+public final class NSenseDataSource extends TemporalDataSource {
 	
 	private String rootURI;
 	String[] graphs, vertices, edges, metaData;
@@ -24,7 +24,7 @@ public final class NSenseDataSource implements ITemporalDataSource {
 		return edges;
 	}
 
-	public String[] getMetaData() {
+	public String[] getMetadata() {
 		return metaData;
 	}
 
