@@ -1,7 +1,19 @@
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.Properties;
 
+/**
+ * 
+ * @author Jasper Havenhand
+ *
+ */
 public final class Configuration {
 	
 	private static Configuration instance = null;
+	private static final String CONFIG_FILE_NAME = "config.properties";
+	private static Properties properties;
 	
 	/**
 	 * Lazy initialisation of Configuration.
@@ -19,21 +31,60 @@ public final class Configuration {
 	}
 	
 	private void loadConfiguration() {
+		properties = new Properties();
+		try {
+			FileInputStream in = new FileInputStream(CONFIG_FILE_NAME);
+			properties.load(in);
+			in.close();
+		} catch (FileNotFoundException e) {
+			setDefaultConfiguration();
+			e.printStackTrace();
+		} catch (IOException e) {
+			// Log the error
+			e.printStackTrace();
+		}
 		
 	}
 	
 	/**
-	 * Retrieves the property with the specified name.
+	 * This is used to set and save the default configuration properties
+	 * if the configuration file is not found.
+	 */
+	private void setDefaultConfiguration() {
+		properties.setProperty("dataFolder","data");
+		saveConfiguration();
+	}
+	
+	/**
+	 * Retrieves the configuration property with the specified name.
 	 * @param name The name of the property to fetch.
 	 * @return The value of the requested property or null if it doesn't exist.
 	 */
 	public String getProperty(String name) {
-		
-		return null;
+		return properties.getProperty(name);
 	}
 
-	public Boolean setProperty(String name, String value) {
-		
-		return true;
+	/**
+	 * Creates or updates the specified configuration property with the specified value.
+	 * @param name The name of the configuration property.
+	 * @param value The value corresponding to the name.
+	 */
+	public void setProperty(String name, String value) {
+		properties.setProperty(name, value);
+		saveConfiguration();
 	}
+	
+	/**
+	 * Writes the current version of the properties to the configuration properties file.
+	 */
+	private void saveConfiguration() {
+		try {
+			FileOutputStream out = new FileOutputStream(CONFIG_FILE_NAME);
+			properties.store(out, null);
+		} catch (Exception e) {
+			// log the error
+			e.printStackTrace();
+		}
+	}
+	
 }
