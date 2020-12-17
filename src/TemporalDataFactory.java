@@ -1,9 +1,8 @@
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URI;
+import java.util.ArrayList;
 
 import org.gradoop.flink.io.api.DataSource;
 import org.gradoop.flink.io.impl.csv.CSVDataSource;
@@ -52,11 +51,11 @@ public class TemporalDataFactory {
 	
 	/**
 	 * Used to create the CSV files necessary for a CSVDataSource.
-	 * @param parentURI
-	 * @param fileName
-	 * @param data
+	 * @param parentURI The directory to create the CSV file within.
+	 * @param fileName The name that will be given to the CSV file.
+	 * @param data The data to be inserted into the CSV file.
 	 */
-	private void createCSVFile(URI parentURI, String fileName, String[] data) {
+	private void createCSVFile(URI parentURI, String fileName, ArrayList<String> data) {
 			
 			try {
 				File file = new File(parentURI.resolve(fileName+".csv"));
