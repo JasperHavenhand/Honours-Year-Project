@@ -1,3 +1,4 @@
+package temporalData;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -17,12 +18,12 @@ public final class NSenseDataSource extends TemporalDataSource {
 	private File[] inputContent;
 	private ArrayList<String> graphs, vertices, edges, metaData;
 	private HashMap<String, String> vertexIDs;
-	/* This constant is created, based on the assumption that there will
-	   be one graph per data source. */
+	/** This constant is created, based on the assumption that there will
+	    be one graph per data source. */
 	private static final String GRAPH_ID = "000000000000000000000000";
-	/* The following labels will be used to associate the graph, vertices
-	   and labels with the descriptions of their properties that will be
-	   given in the metadata.csv file. */
+	/*  The following labels will be used to associate the graph, vertices
+	    and labels with the descriptions of their properties that will be
+	    given in the metadata.csv file. */
 	private static final String GRAPHS_LABEL = "G";
 	private static final String VERTICES_LABEL = "V";
 	private static final String EDGES_LABEL = "E";
@@ -72,8 +73,8 @@ public final class NSenseDataSource extends TemporalDataSource {
 		// Iterating through the folders for each vertex (i.e. each recording device).
 		for (File vertexFolder: inputContent) {
 			if (vertexFolder.isDirectory()) {
-				// Adds the current vertex to the vertices array,
-				// in the expected format for the Gradoop vertices.csv file.
+				/* Adds the current vertex to the vertices array,
+				   in the expected format for the Gradoop vertices.csv file.*/
 				
 				// Creating the vertex ID in the form of a 12 bytes hexadecimal string.
 				vertexIDHex = Integer.toHexString(vertexID);

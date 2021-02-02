@@ -1,3 +1,4 @@
+package temporalData;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -7,8 +8,10 @@ import java.util.ArrayList;
 import org.gradoop.flink.io.api.DataSource;
 import org.gradoop.flink.io.impl.csv.CSVDataSource;
 
+import configuration.Configuration;
+
 /**
- * 
+ * The façade class for the temporalData package.
  * @author Jasper Havenhand
  *
  */
