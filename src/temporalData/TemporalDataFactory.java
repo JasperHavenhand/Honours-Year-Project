@@ -26,7 +26,7 @@ public final class TemporalDataFactory {
 	 * @param sourceName The name to be given to the folder that will be created for the new DataSource.
 	 * @return DataSource
 	 */
-	public DataSource createCSVDataSource(String inputURI, inputType inputType, String sourceName) {
+	public static DataSource createCSVDataSource(String inputURI, inputType inputType, String sourceName) {
 		
 		TemporalDataSource temporalData = null;
 		switch(inputType) {
@@ -63,7 +63,7 @@ public final class TemporalDataFactory {
 	 * @param fileName The name that will be given to the CSV file.
 	 * @param data The data to be inserted into the CSV file.
 	 */
-	private void createCSVFile(URI parentURI, String fileName, ArrayList<String> data) {
+	private static void createCSVFile(URI parentURI, String fileName, ArrayList<String> data) {
 			
 			try {
 				File file = new File(parentURI.resolve(fileName+".csv"));
