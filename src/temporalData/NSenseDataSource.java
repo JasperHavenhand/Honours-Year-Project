@@ -70,12 +70,15 @@ final class NSenseDataSource extends TemporalDataSource {
 	}
 
 	private void setGraphs() {
+		graphs = new ArrayList<String>();
 		String graphsEntry = GRAPH_ID + ";" + GRAPHS_LABEL 
 				+ ";" +(new File(inputURI)).getName();
 		graphs.add(graphsEntry);
 	}
 
 	private void setVertices() {
+		vertices = new ArrayList<String>();
+		vertexIDs = new HashMap<String, String>();
 		int vertexID = 0x0;
 		String vertexIDHex, vertexName, vertexEntry;
 		// Iterating through the folders for each vertex (i.e. each recording device).
@@ -104,7 +107,7 @@ final class NSenseDataSource extends TemporalDataSource {
 	}
 
 	private void setEdges() {
-
+		edges = new ArrayList<String>();
 		// Iterating through the folders for each vertex (i.e. each recording device).
 		for (File vertexFolder: inputContent) {
 			if (vertexFolder.isDirectory()) {
@@ -184,6 +187,7 @@ final class NSenseDataSource extends TemporalDataSource {
 	}
 
 	private void setMetadata() {
+		metaData = new ArrayList<String>();
 		String nameProp = "name:string";
 		metaData.add("g;"+GRAPHS_LABEL+";"+nameProp);
 		metaData.add("v;"+VERTICES_LABEL+";"+nameProp);

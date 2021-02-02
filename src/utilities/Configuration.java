@@ -53,7 +53,7 @@ public final class Configuration {
 	 */
 	private void setDefaultConfiguration() {
 		try {
-			properties.setProperty("dataFolder","data");
+			properties.setProperty("dataFolder", System.getProperty("user.dir")+"\\data");
 			saveConfiguration();
 		} catch (Exception e) {
 			// log the error
