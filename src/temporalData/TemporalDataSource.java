@@ -6,13 +6,13 @@ import java.util.ArrayList;
  * @author Jasper Havenhand
  *
  */
-public abstract class TemporalDataSource {
+abstract class TemporalDataSource {
 	
-	public abstract ArrayList<String> getGraphs();
+	abstract ArrayList<String> getGraphs();
 	
-	public abstract ArrayList<String> getVertices();
+	abstract ArrayList<String> getVertices();
 	
-	public abstract ArrayList<String> getEdges();
+	abstract ArrayList<String> getEdges();
 	
-	public abstract ArrayList<String> getMetadata();
+	abstract ArrayList<String> getMetadata();
 }

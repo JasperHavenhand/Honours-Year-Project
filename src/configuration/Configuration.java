@@ -52,8 +52,14 @@ public final class Configuration {
 	 * if the configuration file is not found.
 	 */
 	private void setDefaultConfiguration() {
-		properties.setProperty("dataFolder","data");
-		saveConfiguration();
+		try {
+			properties.setProperty("dataFolder","data");
+			saveConfiguration();
+		} catch (Exception e) {
+			// log the error
+			// Should key,value pairs be removed from properties if it can't be stored, to maintain atomicity?
+			e.printStackTrace();
+		}	
 	}
 	
 	/**
@@ -71,21 +77,20 @@ public final class Configuration {
 	 * @param value The value corresponding to the name.
 	 */
 	public void setProperty(String name, String value) {
-		properties.setProperty(name, value);
-		saveConfiguration();
-	}
-	
-	/**
-	 * Writes the current version of the properties to the configuration properties file.
-	 */
-	private void saveConfiguration() {
 		try {
-			FileOutputStream out = new FileOutputStream(CONFIG_FILE_NAME);
-			properties.store(out, null);
+			properties.setProperty(name, value);
+			saveConfiguration();
 		} catch (Exception e) {
 			// log the error
+			// Should name,value be removed from properties if it can't be stored, to maintain atomicity?
 			e.printStackTrace();
 		}
+	}
+	
+	/** Writes the current version of the properties to the configuration properties file. */
+	private void saveConfiguration() throws Exception {
+		FileOutputStream out = new FileOutputStream(CONFIG_FILE_NAME);
+		properties.store(out, null);
 	}
 	
 }

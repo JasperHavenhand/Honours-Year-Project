@@ -12,7 +12,7 @@ import java.util.HashMap;
  * @author Jasper Havenhand
  *
  */
-public final class NSenseDataSource extends TemporalDataSource {
+final class NSenseDataSource extends TemporalDataSource {
 	
 	private String inputURI;
 	private File[] inputContent;
@@ -28,7 +28,7 @@ public final class NSenseDataSource extends TemporalDataSource {
 	private static final String VERTICES_LABEL = "V";
 	private static final String EDGES_LABEL = "E";
 	
-	public NSenseDataSource(String inputURI) {
+	NSenseDataSource(String inputURI) {
 		this.inputURI = inputURI;
 		inputContent = (new File(inputURI)).listFiles();
 		if (inputContent != null) {
@@ -45,19 +45,19 @@ public final class NSenseDataSource extends TemporalDataSource {
 		setMetadata();
 	}
 	
-	public ArrayList<String> getGraphs() {
+	ArrayList<String> getGraphs() {
 		return graphs;
 	}
 
-	public ArrayList<String> getVertices() {
+	ArrayList<String> getVertices() {
 		return vertices;
 	}
 
-	public ArrayList<String> getEdges() {
+	ArrayList<String> getEdges() {
 		return edges;
 	}
 
-	public ArrayList<String> getMetadata() {
+	ArrayList<String> getMetadata() {
 		return metaData;
 	}
 
