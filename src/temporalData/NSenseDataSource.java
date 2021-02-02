@@ -29,6 +29,12 @@ final class NSenseDataSource extends TemporalDataSource {
 	private static final String GRAPHS_LABEL = "G";
 	private static final String VERTICES_LABEL = "V";
 	private static final String EDGES_LABEL = "E";
+	/** according to the NSense ReadMe file, "The experiment 
+	 *  was conducted for the period of 12 days from 
+	 *  12th September to 23rd September 2016".
+	 *  This is not provided in the NSense timestamps 
+	 *  but is needed for the Gradoop timestamps.*/
+	private static final int DATA_YEAR = 2016; 
 	
 	NSenseDataSource(String inputURI) {
 		this.inputURI = inputURI;
@@ -126,7 +132,7 @@ final class NSenseDataSource extends TemporalDataSource {
 												String edgeIDHex = Integer.toHexString(edgeID);
 												
 												/* NSense timestamps are in the format of:
-												   MM/dd-HH:mm:ss.SSS 
+												   dd/mm-HH:mm:ss.SSS 
 												   This splits it on any non-digit characters
 												   and converts the strings to integers.*/
 												String[] timeStrings = attributes[0].split("\\D");
@@ -134,14 +140,17 @@ final class NSenseDataSource extends TemporalDataSource {
 												for (int i = 0; i < timeStrings.length; i++) {
 													timeInts[i] = Integer.parseInt(timeStrings[i]);
 												}
-												
-												long timeLabel = LocalDateTime.of(0000,timeInts[0],timeInts[1],timeInts[2],
+
+												String timeLabel = Long.toString(LocalDateTime.of(DATA_YEAR,timeInts[1],timeInts[0],timeInts[2],
 																		timeInts[3],timeInts[4],timeInts[5])
-																		.toInstant(ZoneOffset.UTC).toEpochMilli();
+																		.toInstant(ZoneOffset.UTC).toEpochMilli());
 												
 												String edgeEntry = edgeIDHex + ";[" + GRAPH_ID + "];" 
 														+ srcVertex + ";" + tgtVertex + ";" + EDGES_LABEL
-														+ ";;(" + "," + "),(" + "," + ")";
+														+ ";;(" + timeLabel + "," + timeLabel + "),(" 
+														+ timeLabel + "," + timeLabel + ")";
+												
+												edges.add(edgeEntry);
 												
 												edgeID++;
 											} else {
@@ -178,8 +187,6 @@ final class NSenseDataSource extends TemporalDataSource {
 		String nameProp = "name:string";
 		metaData.add("g;"+GRAPHS_LABEL+";"+nameProp);
 		metaData.add("v;"+VERTICES_LABEL+";"+nameProp);
-		//Add time label properties
-//		metaData.add("e;"+EDGES_LABEL+";"+);
 	}
 
 }

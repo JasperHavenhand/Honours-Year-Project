@@ -8,27 +8,29 @@ import java.util.ArrayList;
 import org.gradoop.flink.io.api.DataSource;
 import org.gradoop.flink.io.impl.csv.CSVDataSource;
 
-import configuration.Configuration;
+import utilities.Configuration;
 
 /**
  * The façade class for the temporalData package.
  * @author Jasper Havenhand
  *
  */
-public class TemporalDataFactory {
+public final class TemporalDataFactory {
+	
+	public static enum inputType {NSENSE};
 	
 	/**
-	 * 
-	 * @param inputURI
-	 * @param inputType
-	 * @param sourceName
-	 * @return org.gradoop.flink.io.api.DataSource
+	 * Returns a new Gradoop DataSource created from the given data.
+	 * @param inputURI The root directory of the files containing the source data.
+	 * @param inputType The format of the source data.
+	 * @param sourceName The name to be given to the folder that will be created for the new DataSource.
+	 * @return DataSource
 	 */
-	public DataSource createCSVDataSource(String inputURI, String inputType, String sourceName) {
+	public DataSource createCSVDataSource(String inputURI, inputType inputType, String sourceName) {
 		
 		TemporalDataSource temporalData = null;
-		switch(inputType.toLowerCase()) {
-			case "nsense":
+		switch(inputType) {
+			case NSENSE:
 				temporalData = new NSenseDataSource(inputURI);
 				break;
 				
@@ -37,19 +39,22 @@ public class TemporalDataFactory {
 				break;
 		}
 		
-		// Creating the folder for the CSV files that will be used to create the CSV data source.
-		URI dataFolderURI = URI.create(Configuration.getInstance().getProperty("dataFolder")).resolve(sourceName);
-		(new File(dataFolderURI)).mkdirs();
+		if (temporalData != null) {
+			// Creating the folder for the CSV files that will be used to create the CSV data source.
+			URI dataFolderURI = URI.create(Configuration.getInstance().getProperty("dataFolder")).resolve(sourceName);
+			(new File(dataFolderURI)).mkdirs();
+			
+			createCSVFile(dataFolderURI, "graphs", temporalData.getGraphs());
+			createCSVFile(dataFolderURI, "vertices", temporalData.getVertices());
+			createCSVFile(dataFolderURI, "edges", temporalData.getEdges());
+			createCSVFile(dataFolderURI, "metadata", temporalData.getMetadata());
+	
+			DataSource CSVDataSource = new CSVDataSource(dataFolderURI.toString(), null);
+			
+			return CSVDataSource;
+		}
 		
-		createCSVFile(dataFolderURI, "graphs", temporalData.getGraphs());
-		createCSVFile(dataFolderURI, "vertices", temporalData.getVertices());
-		createCSVFile(dataFolderURI, "edges", temporalData.getEdges());
-		createCSVFile(dataFolderURI, "metadata", temporalData.getMetadata());
-
-		DataSource CSVDataSource = new CSVDataSource(dataFolderURI.toString(), null);
-		
-		return CSVDataSource;
-		
+		return null;
 	}
 	
 	/**
