@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -97,48 +99,75 @@ final class NSenseDataSource extends TemporalDataSource {
 
 	private void setEdges() {
 
-		File[] dataFiles;
-		int edgeID = 0x0;
-		String edgeIDhex;
 		// Iterating through the folders for each vertex (i.e. each recording device).
 		for (File vertexFolder: inputContent) {
 			if (vertexFolder.isDirectory()) {
-				dataFiles = vertexFolder.listFiles();
-				// Locating the SocialStrength.csv file for the current vertex.
-				// This file records encounters with other recording devices.
-				// The data in this file will be used to create the edges.
-				for (File file: dataFiles) {
-					if (file.getName().toLowerCase().equals("socialstrength")) {
-						try {
-							BufferedReader br = new BufferedReader(new FileReader(file));
-							String line = br.readLine();
-							String[] attributes;
-							// Reading the CSV file, line by line.
-							while (line != null) {
-								attributes = line.split("\\s+");
-								if (attributes.length == 6) {
-									// Checking that this recorded encounter has a non-zero duration.
-									if (!attributes[2].equals("0.0")) {
-										
-										edgeID++;
+				String srcVertex = vertexIDs.get(vertexFolder.getName());
+				if (!srcVertex.equals(null)) {
+					File[] dataFiles = vertexFolder.listFiles()[0].listFiles();
+					// Locating the SocialStrength.csv file for the current vertex.
+					// This file records encounters with other recording devices.
+					// The data in this file will be used to create the edges.
+					for (File file: dataFiles) {
+						if (file.getName().toLowerCase().equals("socialstrength")) {
+							try {
+								BufferedReader br = new BufferedReader(new FileReader(file));
+								String line = br.readLine();
+								int edgeID = 0x0;
+								// Reading the CSV file, line by line.
+								while (line != null) {
+									String[] attributes = line.split("\\s+");
+									if (attributes.length == 6) {
+										// Checking that this recorded encounter has a non-zero duration.
+										if (!attributes[2].equals("0.0")) {
+											// Checking that the other device on this edge has a hexadecimal ID.
+											String tgtVertex = vertexIDs.get(attributes[1]);
+											if (!tgtVertex.equals(null)) {
+												String edgeIDHex = Integer.toHexString(edgeID);
+												
+												/* NSense timestamps are in the format of:
+												   MM/dd-HH:mm:ss.SSS 
+												   This splits it on any non-digit characters
+												   and converts the strings to integers.*/
+												String[] timeStrings = attributes[0].split("\\D");
+												int[] timeInts = new int[timeStrings.length];
+												for (int i = 0; i < timeStrings.length; i++) {
+													timeInts[i] = Integer.parseInt(timeStrings[i]);
+												}
+												
+												long timeLabel = LocalDateTime.of(0000,timeInts[0],timeInts[1],timeInts[2],
+																		timeInts[3],timeInts[4],timeInts[5])
+																		.toInstant(ZoneOffset.UTC).toEpochMilli();
+												
+												String edgeEntry = edgeIDHex + ";[" + GRAPH_ID + "];" 
+														+ srcVertex + ";" + tgtVertex + ";" + EDGES_LABEL
+														+ ";;(" + "," + "),(" + "," + ")";
+												
+												edgeID++;
+											} else {
+												//log error about unknown vertex.
+											}
+										}
+									} else {
+										//log error about incorrect number of columns in SocialStrength entry.
 									}
-								} else {
-									//log error about incorrect number of columns in SocialStrength entry.
+									line = br.readLine();
 								}
-								line = br.readLine();
+								
+								br.close();
+							} catch (FileNotFoundException e) {
+								// log error
+								e.printStackTrace();
+							} catch (IOException e) {
+								// log error
+								e.printStackTrace();
 							}
+							break;
 							
-							br.close();
-						} catch (FileNotFoundException e) {
-							// log error
-							e.printStackTrace();
-						} catch (IOException e) {
-							// log error
-							e.printStackTrace();
 						}
-						break;
-						
 					}
+				} else {
+					//log error about unknown vertex.
 				}
 			}
 		}
@@ -146,10 +175,11 @@ final class NSenseDataSource extends TemporalDataSource {
 	}
 
 	private void setMetadata() {
-		String metaEntry = "name:string";
-		metaData.add("g;"+GRAPHS_LABEL+";"+metaEntry);
-		metaData.add("v;"+VERTICES_LABEL+";"+metaEntry);
-		metaData.add("e;"+EDGES_LABEL+";"+metaEntry);
+		String nameProp = "name:string";
+		metaData.add("g;"+GRAPHS_LABEL+";"+nameProp);
+		metaData.add("v;"+VERTICES_LABEL+";"+nameProp);
+		//Add time label properties
+//		metaData.add("e;"+EDGES_LABEL+";"+);
 	}
 
 }
