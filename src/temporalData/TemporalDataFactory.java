@@ -5,8 +5,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 import org.apache.flink.api.java.ExecutionEnvironment;
-import org.gradoop.flink.io.api.DataSource;
-import org.gradoop.flink.io.impl.csv.CSVDataSource;
+import org.gradoop.temporal.io.impl.csv.TemporalCSVDataSource;
+import org.gradoop.temporal.util.TemporalGradoopConfig;
 
 import utilities.Configuration;
 
@@ -20,13 +20,13 @@ public final class TemporalDataFactory {
 	public static enum inputType {NSENSE};
 	
 	/**
-	 * Returns a new Gradoop DataSource created from the given data.
+	 * Returns a new Gradoop TemporalCSVDataSource created from the given data.
 	 * @param inputPath The root directory for the files containing the source data.
 	 * @param inputType The format of the source data.
 	 * @param sourceName The name to be given to the folder that will be created for the new DataSource.
-	 * @return DataSource
+	 * @return TemporalCSVDataSource
 	 */
-	public static DataSource createCSVDataSource(String inputPath, inputType inputType, String sourceName) {
+	public static TemporalCSVDataSource createCSVDataSource(String inputPath, inputType inputType, String sourceName) {
 		
 		TemporalDataSource temporalData = null;
 		switch(inputType) {
@@ -52,7 +52,7 @@ public final class TemporalDataFactory {
 			ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();
 			TemporalGradoopConfig config = TemporalGradoopConfig.createConfig(env);
 
-			DataSource CSVDataSource = new TemporalCSVDataSource(dataFolder.toString(), config);
+			TemporalCSVDataSource CSVDataSource = new TemporalCSVDataSource(dataFolder, config);
 			return CSVDataSource;
 		}
 		
