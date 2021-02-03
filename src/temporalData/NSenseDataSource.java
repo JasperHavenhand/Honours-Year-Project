@@ -16,13 +16,13 @@ import java.util.HashMap;
  */
 final class NSenseDataSource extends TemporalDataSource {
 	
-	private String inputURI;
+	private String inputPath;
 	private File[] inputContent;
 	private ArrayList<String> graphs, vertices, edges, metaData;
 	private HashMap<String, String> vertexIDs;
 	/** This constant is created, based on the assumption that there will
 	    be one graph per data source. */
-	private static final String GRAPH_ID = "000000000000000000000000";
+	private static final String GRAPH_ID = "000000000000";
 	/*  The following labels will be used to associate the graph, vertices
 	    and labels with the descriptions of their properties that will be
 	    given in the metadata.csv file. */
@@ -36,9 +36,9 @@ final class NSenseDataSource extends TemporalDataSource {
 	 *  but is needed for the Gradoop timestamps.*/
 	private static final int DATA_YEAR = 2016; 
 	
-	NSenseDataSource(String inputURI) {
-		this.inputURI = inputURI;
-		inputContent = (new File(inputURI)).listFiles();
+	NSenseDataSource(String inputPath) {
+		this.inputPath = inputPath;
+		inputContent = (new File(inputPath)).listFiles();
 		if (inputContent != null) {
 			extractData();
 		} else {
@@ -72,7 +72,7 @@ final class NSenseDataSource extends TemporalDataSource {
 	private void setGraphs() {
 		graphs = new ArrayList<String>();
 		String graphsEntry = GRAPH_ID + ";" + GRAPHS_LABEL 
-				+ ";" +(new File(inputURI)).getName();
+				+ ";" +(new File(inputPath)).getName();
 		graphs.add(graphsEntry);
 	}
 
@@ -112,27 +112,28 @@ final class NSenseDataSource extends TemporalDataSource {
 		for (File vertexFolder: inputContent) {
 			if (vertexFolder.isDirectory()) {
 				String srcVertex = vertexIDs.get(vertexFolder.getName());
-				if (!srcVertex.equals(null)) {
+				if (srcVertex != null) {
 					File[] dataFiles = vertexFolder.listFiles()[0].listFiles();
 					// Locating the SocialStrength.csv file for the current vertex.
 					// This file records encounters with other recording devices.
 					// The data in this file will be used to create the edges.
 					for (File file: dataFiles) {
-						if (file.getName().toLowerCase().equals("socialstrength")) {
+						if (file.getName().toLowerCase().contains("socialstrength")) {
 							try {
 								BufferedReader br = new BufferedReader(new FileReader(file));
 								String line = br.readLine();
 								int edgeID = 0x0;
 								// Reading the CSV file, line by line.
 								while (line != null) {
-									String[] attributes = line.split("\\s+");
+									String[] attributes = line.trim().split("\\s+");
 									if (attributes.length == 6) {
 										// Checking that this recorded encounter has a non-zero duration.
 										if (!attributes[2].equals("0.0")) {
 											// Checking that the other device on this edge has a hexadecimal ID.
 											String tgtVertex = vertexIDs.get(attributes[1]);
-											if (!tgtVertex.equals(null)) {
+											if (tgtVertex != null) {
 												String edgeIDHex = Integer.toHexString(edgeID);
+												edgeIDHex = "0".repeat(12-edgeIDHex.length()) + edgeIDHex;
 												
 												/* NSense timestamps are in the format of:
 												   dd/mm-HH:mm:ss.SSS 
@@ -152,7 +153,7 @@ final class NSenseDataSource extends TemporalDataSource {
 														+ srcVertex + ";" + tgtVertex + ";" + EDGES_LABEL
 														+ ";;(" + timeLabel + "," + timeLabel + "),(" 
 														+ timeLabel + "," + timeLabel + ")";
-												
+
 												edges.add(edgeEntry);
 												
 												edgeID++;
