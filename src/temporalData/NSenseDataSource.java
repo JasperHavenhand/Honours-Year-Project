@@ -22,7 +22,7 @@ final class NSenseDataSource extends TemporalDataSource {
 	private HashMap<String, String> vertexIDs;
 	/** This constant is created, based on the assumption that there will
 	    be one graph per data source. */
-	private static final String GRAPH_ID = "000000000000";
+	private static final String GRAPH_ID = "000000000000000000000000";
 	/*  The following labels will be used to associate the graph, vertices
 	    and labels with the descriptions of their properties that will be
 	    given in the metadata.csv file. */
@@ -34,7 +34,11 @@ final class NSenseDataSource extends TemporalDataSource {
 	 *  12th September to 23rd September 2016".
 	 *  This is not provided in the NSense timestamps 
 	 *  but is needed for the Gradoop timestamps.*/
-	private static final int DATA_YEAR = 2016; 
+	private static final int DATA_YEAR = 2016;
+	/** The vertices and graphs need time intervals, as well as the edges.
+	 *  This value is used to make the vertices and graphs valid for all time,
+	 *  since they don't require temporal properties for this task.*/
+	private static final String TIME_INTERVALS = "(,)";
 	
 	NSenseDataSource(String inputPath) {
 		this.inputPath = inputPath;
@@ -89,7 +93,7 @@ final class NSenseDataSource extends TemporalDataSource {
 				
 				// Creating the vertex ID in the form of a 12 bytes hexadecimal string.
 				vertexIDHex = Integer.toHexString(vertexID);
-				vertexIDHex = "0".repeat(12-vertexIDHex.length()) + vertexIDHex;
+				vertexIDHex = "0".repeat(24-vertexIDHex.length()) + vertexIDHex;
 				
 				vertexName = vertexFolder.getName();
 				
@@ -133,7 +137,7 @@ final class NSenseDataSource extends TemporalDataSource {
 											String tgtVertex = vertexIDs.get(attributes[1]);
 											if (tgtVertex != null) {
 												String edgeIDHex = Integer.toHexString(edgeID);
-												edgeIDHex = "0".repeat(12-edgeIDHex.length()) + edgeIDHex;
+												edgeIDHex = "0".repeat(24-edgeIDHex.length()) + edgeIDHex;
 												
 												/* NSense timestamps are in the format of:
 												   dd/mm-HH:mm:ss.SSS 

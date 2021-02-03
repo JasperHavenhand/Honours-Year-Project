@@ -14,7 +14,7 @@ public class Testing {
 		TemporalCSVDataSource data = TemporalDataFactory.createCSVDataSource(
 				"C:\\Users\\Student\\Documents\\Fourth Year\\COMP390 - Honours Year Project\\NSense_Traces_Set2_CRAWDAD",
 				inputType.NSENSE,"NSense_test");
-		
+
 		TemporalGraph graph = data.getTemporalGraph();
 		try {
 			for (TemporalGraphHead head: graph.getGraphHead().collect()) {
