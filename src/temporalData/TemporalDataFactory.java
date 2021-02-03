@@ -4,6 +4,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import org.apache.flink.api.java.ExecutionEnvironment;
 import org.gradoop.flink.io.api.DataSource;
 import org.gradoop.flink.io.impl.csv.CSVDataSource;
 
@@ -48,8 +49,10 @@ public final class TemporalDataFactory {
 			createCSVFile(dataFolder, "edges", temporalData.getEdges());
 			createCSVFile(dataFolder, "metadata", temporalData.getMetadata());
 	
-			DataSource CSVDataSource = new CSVDataSource(dataFolder.toString(), null);
-			
+			ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();
+			TemporalGradoopConfig config = TemporalGradoopConfig.createConfig(env);
+
+			DataSource CSVDataSource = new TemporalCSVDataSource(dataFolder.toString(), config);
 			return CSVDataSource;
 		}
 		
