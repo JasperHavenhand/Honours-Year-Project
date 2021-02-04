@@ -9,6 +9,7 @@ import org.gradoop.temporal.io.impl.csv.TemporalCSVDataSource;
 import org.gradoop.temporal.util.TemporalGradoopConfig;
 
 import utilities.Configuration;
+import utilities.Log;
 
 /**
  * The façade class for the temporalData package.
@@ -18,6 +19,9 @@ import utilities.Configuration;
 public final class TemporalDataFactory {
 	
 	public static enum inputType {NSENSE};
+	
+	/** The name of the log file that will be used by this class. */
+	private static String LOG_NAME = "Data_Sources_log";
 	
 	/**
 	 * Returns a new Gradoop TemporalCSVDataSource created from the given data.
@@ -35,7 +39,7 @@ public final class TemporalDataFactory {
 				break;
 				
 			default:
-				// error: input type not found.
+				Log.getLog(LOG_NAME).writeError("Data input type not known:" +inputType);
 				break;
 		}
 		
@@ -79,7 +83,7 @@ public final class TemporalDataFactory {
 				writer.close();
 				
 			} catch (IOException e) {
-				// log error
+				Log.getLog(LOG_NAME).writeException(e);
 				e.printStackTrace();
 			}
 		

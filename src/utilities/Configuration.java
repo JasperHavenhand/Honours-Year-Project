@@ -15,6 +15,8 @@ public final class Configuration {
 	private static Configuration instance = null;
 	private static final String CONFIG_FILE_NAME = "config.properties";
 	private static Properties properties;
+	/** The name of the log file that will be used by this class. */
+	private static String LOG_NAME = "General_log";
 	
 	/**
 	 * Lazy initialisation of Configuration.
@@ -41,7 +43,7 @@ public final class Configuration {
 			setDefaultConfiguration();
 			e.printStackTrace();
 		} catch (IOException e) {
-			// Log the error
+			Log.getLog(LOG_NAME).writeException(e);
 			e.printStackTrace();
 		}
 		
@@ -57,9 +59,9 @@ public final class Configuration {
 			properties.setProperty("logsFolder", System.getProperty("user.dir")+"\\logs");
 			saveConfiguration();
 		} catch (Exception e) {
-			// log the error
-			// Should key,value pairs be removed from properties if it can't be stored, to maintain atomicity?
+			Log.getLog(LOG_NAME).writeException(e);
 			e.printStackTrace();
+			// Should key,value pairs be removed from properties if it can't be stored, to maintain atomicity?
 		}	
 	}
 	
@@ -82,7 +84,7 @@ public final class Configuration {
 			properties.setProperty(name, value);
 			saveConfiguration();
 		} catch (Exception e) {
-			// log the error
+			Log.getLog(LOG_NAME).writeException(e);
 			// Should name,value be removed from properties if it can't be stored, to maintain atomicity?
 			e.printStackTrace();
 		}

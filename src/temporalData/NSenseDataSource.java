@@ -9,6 +9,8 @@ import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import utilities.Log;
+
 /**
  * 
  * @author Jasper Havenhand
@@ -39,6 +41,8 @@ final class NSenseDataSource extends TemporalDataSource {
 	 *  Since they don't require temporal properties for this task, they are 
 	 *  given the interval 01/01/1970-00:00:00 to 31/12/9999-23:59:59 for both.*/
 	private static final String DEFAULT_TIME_INTERVALS = "(0,253402300799000),(0,253402300799000)";
+	/** The name of the log file that will be used by this class. */
+	private static String LOG_NAME = "Data_Sources_log";
 	
 	NSenseDataSource(String inputPath) {
 		this.inputPath = inputPath;
@@ -46,7 +50,7 @@ final class NSenseDataSource extends TemporalDataSource {
 		if (inputContent != null) {
 			extractData();
 		} else {
-			//error
+			Log.getLog(LOG_NAME).writeError("No NSense files could not be found at: "+inputPath);
 		}
 	}
 	
@@ -176,27 +180,33 @@ final class NSenseDataSource extends TemporalDataSource {
 												
 												edgeID++;
 											} else {
-												//log error about unknown vertex.
+												Log.getLog(LOG_NAME).writeWarning(
+														"Unknown target vertex in NSense file " + 
+														vertexFolder.getName() + "/SocialStrength.data:" + attributes[1]);
 											}
 										}
 									} else {
-										//log error about incorrect number of columns in SocialStrength entry.
+										Log.getLog(LOG_NAME).writeWarning(
+												"Incorrect number of columns in NSense file " +
+												vertexFolder.getName() + "/SocialStrength.data:" + line);
 									}
 									line = br.readLine();
 								}
 								br.close();
 							} catch (FileNotFoundException e) {
-								// log error
+								Log.getLog(LOG_NAME).writeException(e);
 								e.printStackTrace();
 							} catch (IOException e) {
-								// log error
+								Log.getLog(LOG_NAME).writeException(e);
 								e.printStackTrace();
 							}
 							break;	
 						}
 					}
 				} else {
-					//log error about unknown vertex.
+					Log.getLog(LOG_NAME).writeWarning(
+							"Unknown NSense source vertex: " + 
+							vertexFolder.getName());
 				}
 			}
 		}
