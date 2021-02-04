@@ -35,10 +35,10 @@ final class NSenseDataSource extends TemporalDataSource {
 	 *  This is not provided in the NSense timestamps 
 	 *  but is needed for the Gradoop timestamps.*/
 	private static final int DATA_YEAR = 2016;
-	/** The vertices and graphs need time intervals, as well as the edges.
-	 *  This value is used to make the vertices and graphs valid for all time,
-	 *  since they don't require temporal properties for this task.*/
-	private static final String TIME_INTERVALS = "(,)";
+	/** The vertices and graphs need to be defined with time intervals, as well as the edges.
+	 *  Since they don't require temporal properties for this task, they are 
+	 *  given the interval 01/01/1970-00:00:00 to 31/12/9999-23:59:59 for both.*/
+	private static final String DEFAULT_TIME_INTERVALS = "(0,253402300799000),(0,253402300799000)";
 	
 	NSenseDataSource(String inputPath) {
 		this.inputPath = inputPath;
@@ -75,8 +75,12 @@ final class NSenseDataSource extends TemporalDataSource {
 
 	private void setGraphs() {
 		graphs = new ArrayList<String>();
+		
+		// graph-id;label;value_1|value_2|...|value_n;(tx-from,tx-to),(val-from,val-to)
 		String graphsEntry = GRAPH_ID + ";" + GRAPHS_LABEL 
-				+ ";" +(new File(inputPath)).getName();
+				+ ";" +(new File(inputPath)).getName()
+				+ ";" + DEFAULT_TIME_INTERVALS;
+		
 		graphs.add(graphsEntry);
 	}
 
@@ -97,7 +101,9 @@ final class NSenseDataSource extends TemporalDataSource {
 				
 				vertexName = vertexFolder.getName();
 				
-				vertexEntry = vertexIDHex + ";[" + GRAPH_ID + "];" + VERTICES_LABEL + ";" + vertexName;
+				// vertex-id;[graph-ids];label;value_1|value_2|...|value_n;(tx-from,tx-to),(val-from,val-to)
+				vertexEntry = vertexIDHex + ";[" + GRAPH_ID + "];" + VERTICES_LABEL + ";"
+								+ vertexName + ";" + DEFAULT_TIME_INTERVALS;
 
 				vertices.add(vertexEntry);
 				// Mapping the vector's name to its Hexadecimal ID.
@@ -148,15 +154,23 @@ final class NSenseDataSource extends TemporalDataSource {
 												for (int i = 0; i < timeStrings.length; i++) {
 													timeInts[i] = Integer.parseInt(timeStrings[i]);
 												}
-
-												String timeLabel = Long.toString(LocalDateTime.of(DATA_YEAR,timeInts[1],timeInts[0],timeInts[2],
-																		timeInts[3],timeInts[4],timeInts[5])
-																		.toInstant(ZoneOffset.UTC).toEpochMilli());
+												
+												LocalDateTime fromTime = LocalDateTime.of(DATA_YEAR,timeInts[1],
+														timeInts[0],timeInts[2],
+														timeInts[3],timeInts[4],timeInts[5]);
+												
+												// Calculating the interaction end time by adding the duration (in nanoseconds) to the timestamp.
+												long duration = Math.round(Double.parseDouble(attributes[2]) * Double.valueOf(1e+9));
+												LocalDateTime toTime = fromTime.plusNanos(duration);
+												
+												String fromTimeStr = Long.toString(fromTime.toInstant(ZoneOffset.UTC).toEpochMilli());
+												
+												String toTimeStr = Long.toString(toTime.toInstant(ZoneOffset.UTC).toEpochMilli());;
 												
 												String edgeEntry = edgeIDHex + ";[" + GRAPH_ID + "];" 
 														+ srcVertex + ";" + tgtVertex + ";" + EDGES_LABEL
-														+ ";;(" + timeLabel + "," + timeLabel + "),(" 
-														+ timeLabel + "," + timeLabel + ")";
+														+ ";;(" + fromTimeStr + "," + toTimeStr + "),(" 
+														+ fromTimeStr + "," + toTimeStr + ")";
 
 												edges.add(edgeEntry);
 												
@@ -170,7 +184,6 @@ final class NSenseDataSource extends TemporalDataSource {
 									}
 									line = br.readLine();
 								}
-								
 								br.close();
 							} catch (FileNotFoundException e) {
 								// log error
@@ -179,8 +192,7 @@ final class NSenseDataSource extends TemporalDataSource {
 								// log error
 								e.printStackTrace();
 							}
-							break;
-							
+							break;	
 						}
 					}
 				} else {

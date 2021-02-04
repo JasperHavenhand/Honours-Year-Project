@@ -15,21 +15,21 @@ public class Testing {
 				"C:\\Users\\Student\\Documents\\Fourth Year\\COMP390 - Honours Year Project\\NSense_Traces_Set2_CRAWDAD",
 				inputType.NSENSE,"NSense_test");
 
-		TemporalGraph graph = data.getTemporalGraph();
-		try {
-			for (TemporalGraphHead head: graph.getGraphHead().collect()) {
-				System.out.println(head.getPropertyValue("name"));
-			}
-			for (TemporalVertex vertex: graph.getVertices().collect()) {
-				System.out.println(vertex.getPropertyValue("name"));
-			}
-			for (TemporalEdge edge: graph.getEdges().collect()) {
-				System.out.println(edge.getId());
-			}
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+//		TemporalGraph graph = data.getTemporalGraph();
+//		try {
+//			for (TemporalGraphHead head: graph.getGraphHead().collect()) {
+//				System.out.println(head.getPropertyValue("name"));
+//			}
+//			for (TemporalVertex vertex: graph.getVertices().collect()) {
+//				System.out.println(vertex.getPropertyValue("name"));
+//			}
+//			for (TemporalEdge edge: graph.getEdges().collect()) {
+//				System.out.println(edge.getId());
+//			}
+//		} catch (Exception e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
 		
 	}
 }
