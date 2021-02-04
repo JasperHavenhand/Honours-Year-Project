@@ -54,6 +54,7 @@ public final class Configuration {
 	private void setDefaultConfiguration() {
 		try {
 			properties.setProperty("dataFolder", System.getProperty("user.dir")+"\\data");
+			properties.setProperty("logsFolder", System.getProperty("user.dir")+"\\logs");
 			saveConfiguration();
 		} catch (Exception e) {
 			// log the error
