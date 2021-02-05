@@ -42,15 +42,23 @@ final class NSenseDataSource extends TemporalDataSource {
 	 *  given the interval 01/01/1970-00:00:00 to 31/12/9999-23:59:59 for both.*/
 	private static final String DEFAULT_TIME_INTERVALS = "(0,253402300799000),(0,253402300799000)";
 	/** The name of the log file that will be used by this class. */
-	private static String LOG_NAME = "Data_Sources_log";
+	private static String LOG_NAME = "data_sources_log";
 	
-	NSenseDataSource(String inputPath) {
-		this.inputPath = inputPath;
-		inputContent = (new File(inputPath)).listFiles();
-		if (inputContent != null) {
-			extractData();
-		} else {
-			Log.getLog(LOG_NAME).writeError("No NSense files could not be found at: "+inputPath);
+	NSenseDataSource(String inputPath) throws NullPointerException {
+		if (inputPath == null) {
+			throw new NullPointerException("The input path is required.");
+		}
+		try {
+			this.inputPath = inputPath;
+			inputContent = (new File(inputPath)).listFiles();
+			if (inputContent != null) {
+				extractData();
+			} else {
+				Log.getLog(LOG_NAME).writeError("No NSense files could not be found at: "+inputPath);
+			}
+		} catch (Exception e) {
+			Log.getLog(LOG_NAME).writeException(e);
+			e.printStackTrace();
 		}
 	}
 	
@@ -181,22 +189,21 @@ final class NSenseDataSource extends TemporalDataSource {
 												edgeID++;
 											} else {
 												Log.getLog(LOG_NAME).writeWarning(
-														"Unknown target vertex in NSense file " + 
-														vertexFolder.getName() + "/SocialStrength.data:" + attributes[1]);
+														"Unknown target vertex \"" + attributes[1] + "\" in NSense file " + 
+														inputPath + File.separator + vertexFolder.getName() + File.separator +
+														"SocialStrength.data");
 											}
 										}
 									} else {
 										Log.getLog(LOG_NAME).writeWarning(
-												"Incorrect number of columns in NSense file " +
-												vertexFolder.getName() + "/SocialStrength.data:" + line);
+												"Incorrect number of columns on line \"" + line + "\" in NSense file " +
+												inputPath + File.separator + vertexFolder.getName() + File.separator +
+												"SocialStrength.data");
 									}
 									line = br.readLine();
 								}
 								br.close();
-							} catch (FileNotFoundException e) {
-								Log.getLog(LOG_NAME).writeException(e);
-								e.printStackTrace();
-							} catch (IOException e) {
+							} catch (Exception e) {
 								Log.getLog(LOG_NAME).writeException(e);
 								e.printStackTrace();
 							}

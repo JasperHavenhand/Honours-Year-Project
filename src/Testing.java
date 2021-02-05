@@ -7,13 +7,18 @@ import org.gradoop.temporal.model.impl.pojo.TemporalVertex;
 
 import temporalData.TemporalDataFactory;
 import temporalData.TemporalDataFactory.inputType;
+import utilities.Log;
 
 public class Testing {
 	
 	public static void main (String[] args) {
+		try {
 		TemporalCSVDataSource data = TemporalDataFactory.createCSVDataSource(
 				"C:\\Users\\Student\\Documents\\Fourth Year\\COMP390 - Honours Year Project\\NSense_Traces_Set2_CRAWDAD",
 				inputType.NSENSE,"NSense_test");
+		} catch (Exception e) {
+			Log.getLog("data_sources_log").writeException(e);
+		}
 
 //		TemporalGraph graph = data.getTemporalGraph();
 //		try {

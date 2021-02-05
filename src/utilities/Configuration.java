@@ -1,4 +1,5 @@
 package utilities;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -16,7 +17,7 @@ public final class Configuration {
 	private static final String CONFIG_FILE_NAME = "config.properties";
 	private static Properties properties;
 	/** The name of the log file that will be used by this class. */
-	private static String LOG_NAME = "General_log";
+	private static String LOG_NAME = "general_log";
 	
 	/**
 	 * Lazy initialisation of Configuration.
@@ -41,7 +42,6 @@ public final class Configuration {
 			in.close();
 		} catch (FileNotFoundException e) {
 			setDefaultConfiguration();
-			e.printStackTrace();
 		} catch (IOException e) {
 			Log.getLog(LOG_NAME).writeException(e);
 			e.printStackTrace();
@@ -55,8 +55,8 @@ public final class Configuration {
 	 */
 	private void setDefaultConfiguration() {
 		try {
-			properties.setProperty("dataFolder", System.getProperty("user.dir")+"\\data");
-			properties.setProperty("logsFolder", System.getProperty("user.dir")+"\\logs");
+			properties.setProperty("dataFolder", System.getProperty("user.dir")+ File.separator + "data");
+			properties.setProperty("logsFolder", System.getProperty("user.dir")+ File.separator + "logs");
 			saveConfiguration();
 		} catch (Exception e) {
 			Log.getLog(LOG_NAME).writeException(e);

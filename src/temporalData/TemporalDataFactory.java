@@ -21,7 +21,7 @@ public final class TemporalDataFactory {
 	public static enum inputType {NSENSE};
 	
 	/** The name of the log file that will be used by this class. */
-	private static String LOG_NAME = "Data_Sources_log";
+	private static String LOG_NAME = "data_sources_log";
 	
 	/**
 	 * Returns a new Gradoop TemporalCSVDataSource created from the given data.
@@ -30,7 +30,17 @@ public final class TemporalDataFactory {
 	 * @param sourceName The name to be given to the folder that will be created for the new DataSource.
 	 * @return TemporalCSVDataSource
 	 */
-	public static TemporalCSVDataSource createCSVDataSource(String inputPath, inputType inputType, String sourceName) {
+	public static TemporalCSVDataSource createCSVDataSource(String inputPath, inputType inputType, String sourceName) throws NullPointerException {
+		
+		if (inputPath == null || inputPath.length() == 0) {
+			throw new NullPointerException("The input path is required.");
+		} 
+		if (inputType == null) {
+			throw new NullPointerException("The input type is required.");
+		}
+		if (sourceName == null || sourceName.length() == 0) {
+			throw new NullPointerException("The source name is required.");
+		}
 		
 		TemporalDataSource temporalData = null;
 		switch(inputType) {
@@ -46,7 +56,7 @@ public final class TemporalDataFactory {
 		if (temporalData != null) {
 			// Creating the folder for the CSV files that will be used for the CSVDataSource.
 			String dataFolder = Configuration.getInstance().getProperty("dataFolder") + File.separator + sourceName;
-			(new File(dataFolder)).mkdirs();
+			new File(dataFolder).mkdirs();
 			
 			createCSVFile(dataFolder, "graphs", temporalData.getGraphs());
 			createCSVFile(dataFolder, "vertices", temporalData.getVertices());
@@ -82,7 +92,7 @@ public final class TemporalDataFactory {
 				writer.flush();
 				writer.close();
 				
-			} catch (IOException e) {
+			} catch (Exception e) {
 				Log.getLog(LOG_NAME).writeException(e);
 				e.printStackTrace();
 			}

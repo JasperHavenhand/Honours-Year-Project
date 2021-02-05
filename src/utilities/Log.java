@@ -34,14 +34,16 @@ public final class Log {
 	}
 	
 	private Log(String name) {
+		String logsFolder = Configuration.getInstance().getProperty("logsFolder");
+		new File(logsFolder).mkdirs();
 		LocalDateTime date = LocalDateTime.now();
-		logFile = new File(Configuration.getInstance().getProperty("logsFolder") + 
-				File.separator + name + "_" + FILE_NAME_FORMAT.format(date)+".txt");
+		logFile = new File(logsFolder + File.separator + name + "_" 
+				+ FILE_NAME_FORMAT.format(date)+".txt");
 	}
 	
 	public void write(String text) {
 		try {
-			FileWriter writer = new FileWriter(logFile);
+			FileWriter writer = new FileWriter(logFile,true);
 			
 			LocalDateTime dateTime = LocalDateTime.now();
 			String timestamp = "[" + LOG_ENTRY_FORMAT.format(dateTime) + "] ";
@@ -57,20 +59,18 @@ public final class Log {
 	}
 	
 	public void writeError(String text) {
-		write("ERROR: ");
+		write("ERROR: " + text);
 	}
 	
 	public void writeWarning(String text) {
-		write("WARNING: ");
+		write("WARNING: " + text);
 	}
 	
 	public void writeException(Exception e) {
-		String msg = e.getMessage();
 		StringWriter sw = new StringWriter();
 		PrintWriter pw = new PrintWriter(sw);
 		e.printStackTrace(pw);
-		msg += "\n" + sw.toString();
+		write(sw.toString());
 		pw.close();
-		write(msg);
 	}
 }
