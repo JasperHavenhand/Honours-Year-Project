@@ -12,12 +12,12 @@ public class Testing {
 	
 	public static void main (String[] args) {
 		try {
-//			TemporalCSVDataSource data = TemporalDataFactory.createCSVDataSource(
-//				"C:\\Users\\Student\\Documents\\Fourth Year\\COMP390 - Honours Year Project\\NSense_Traces_Set2_CRAWDAD",
-//				inputType.NSENSE,"NSense_test");
+			TemporalCSVDataSource data = TemporalDataFactory.createCSVDataSource(
+				"C:\\Users\\Student\\Documents\\Fourth Year\\COMP390 - Honours Year Project\\NSense_Traces_Set2_CRAWDAD",
+				inputType.NSENSE,"NSense_test");
 			
-			TemporalCSVDataSource data = TemporalDataFactory
-					.loadCSVDataSource("C:\\Users\\Student\\eclipse-workspace\\Honours-Year-Project\\data\\NSense_test");
+//			TemporalCSVDataSource data = TemporalDataFactory
+//					.loadCSVDataSource("C:\\Users\\Student\\eclipse-workspace\\Honours-Year-Project\\data\\NSense_test");
 
 			TemporalGraph graph = data.getTemporalGraph();
 			

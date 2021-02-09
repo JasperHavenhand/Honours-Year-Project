@@ -111,9 +111,9 @@ final class NSenseDataSource extends TemporalDataSource {
 				
 				vertexName = vertexFolder.getName();
 				
-				// vertex-id;[graph-ids];label;value_1|value_2|...|value_n;(tx-from,tx-to),(val-from,val-to)
+				// vertex-id;[graph-ids];label;name|infected;(tx-from,tx-to),(val-from,val-to)
 				vertexEntry = vertexIDHex + ";[" + GRAPH_ID + "];" + VERTICES_LABEL + ";"
-								+ vertexName + ";" + DEFAULT_TIME_INTERVALS;
+								+ vertexName +"|false;" + DEFAULT_TIME_INTERVALS;
 
 				vertices.add(vertexEntry);
 				// Mapping the vector's name to its Hexadecimal ID.
@@ -221,8 +221,9 @@ final class NSenseDataSource extends TemporalDataSource {
 	private void setMetadata() {
 		metaData = new ArrayList<String>();
 		String nameProp = "name:string";
+		String infectedProp = "infected:boolean";
 		metaData.add("g;"+GRAPHS_LABEL+";"+nameProp);
-		metaData.add("v;"+VERTICES_LABEL+";"+nameProp);
+		metaData.add("v;"+VERTICES_LABEL+";"+nameProp+","+infectedProp);
 	}
 
 }
