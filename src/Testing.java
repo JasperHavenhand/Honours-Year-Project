@@ -1,3 +1,5 @@
+import java.util.Comparator;
+
 import org.apache.flink.api.common.operators.Order;
 import org.gradoop.temporal.io.impl.csv.TemporalCSVDataSource;
 import org.gradoop.temporal.model.impl.TemporalGraph;
@@ -14,23 +16,23 @@ public class Testing {
 	
 	public static void main (String[] args) {
 		try {
-			TemporalCSVDataSource data = TemporalDataFactory.createCSVDataSource(
-				"C:\\Users\\Student\\Documents\\Fourth Year\\COMP390 - Honours Year Project\\NSense_Traces_Set2_CRAWDAD",
-				inputType.NSENSE,"NSense_test");
+//			TemporalCSVDataSource data = TemporalDataFactory.createCSVDataSource(
+//				"C:\\Users\\Student\\Documents\\Fourth Year\\COMP390 - Honours Year Project\\NSense_Traces_Set2_CRAWDAD",
+//				inputType.NSENSE,"NSense_test");
 			
-//			TemporalCSVDataSource data = TemporalDataFactory
-//					.loadCSVDataSource("C:\\Users\\Student\\eclipse-workspace\\Honours-Year-Project\\data\\NSense_test");
+			TemporalCSVDataSource data = TemporalDataFactory
+					.loadCSVDataSource("C:\\Users\\Student\\eclipse-workspace\\Honours-Year-Project\\data\\NSense_test");
 			
 			TemporalGraph graph = data.getTemporalGraph();
-			System.out.println(graph.getEdges().count());
 			
-			TemporalEdge edge = graph.getEdges().sortPartition("validTime", Order.ASCENDING).collect().get(0);
+			TemporalEdge edge = graph.getEdges().sortPartition("validTime.f0", Order.ASCENDING).setParallelism(1).collect().get(0);
 			long timestamp = edge.getValidFrom();
 			System.out.println(timestamp);
 			
 			TemporalGraph graph2 = graph.snapshot(new AsOf(timestamp));
 			System.out.println(graph2.getEdges().count());
 			graph2.print();
+			
 //			String query = "MATCH (v1)-[]->(v2) WHERE v1.infected = false AND v2.infected = true";
 //			
 //			TemporalGraphCollection newInfections = graph.query(query);
@@ -39,7 +41,7 @@ public class Testing {
 //				System.out.println(vertex.getPropertyValue("name"));
 //			}
 			
-		}catch (Exception e) {
+		} catch (Exception e) {
 			Log.getLog("data_sources_log").writeException(e);
 			e.printStackTrace();
 		}

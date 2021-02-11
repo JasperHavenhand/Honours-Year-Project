@@ -10,20 +10,27 @@ public final class TemporalGraphHandler {
 
 	private TemporalGraph completeGraph;
 	private TemporalGraph currentGraph;
-	private int transmissionRisk;
+	private String tokenPropName;
+	private int tokenTransProb;
 	private Long currentTimestamp;
 	private long timeIncrement;
 	/** The name of the log file that will be used by this class. */
 	private static String LOG_NAME = "graphs_log";
 	
-	public TemporalGraphHandler(TemporalGraph graph, int transmissionRisk) {
+	/**
+	 * 
+	 * @param graph The temporalGraph to be handled.
+	 * @param tokenPropName The name of the vertex property that represents the token that will be disseminated.
+	 * @param tokenTransProb The probability of the token being passed over an active connection.
+	 */
+	public TemporalGraphHandler(TemporalGraph graph, String tokenPropName, int tokenTransProb) {
 		try {
 			completeGraph = graph;
-			this.transmissionRisk = transmissionRisk;
+			this.tokenTransProb = tokenTransProb;
+			this.tokenPropName = tokenPropName;
 			
-			currentTimestamp = completeGraph.getEdges()
-					.sortPartition("transactionTime", Order.ASCENDING)
-					.collect().get(0).getTxFrom();
+			currentTimestamp = completeGraph.getEdges().sortPartition("validTime.f0", Order.ASCENDING)
+					.setParallelism(1).collect().get(0).getValidFrom();
 			
 			currentGraph = completeGraph.snapshot(new AsOf(currentTimestamp));
 		} catch (Exception e) {
