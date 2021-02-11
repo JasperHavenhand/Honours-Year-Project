@@ -161,13 +161,15 @@ final class NSenseDataSource extends TemporalDataSource {
 												   and converts the strings to integers.*/
 												String[] timeStrings = attributes[0].split("\\D");
 												int[] timeInts = new int[timeStrings.length];
-												for (int i = 0; i < timeStrings.length; i++) {
+												for (int i = 0; i < timeStrings.length-1; i++) {
 													timeInts[i] = Integer.parseInt(timeStrings[i]);
 												}
+												// Converting the fraction of as second to nanoseconds.
+												int nanos = (int) (Double.parseDouble("0."+timeStrings[5])* Double.valueOf(1e+9));
 												
 												LocalDateTime fromTime = LocalDateTime.of(DATA_YEAR,timeInts[1],
 														timeInts[0],timeInts[2],
-														timeInts[3],timeInts[4],timeInts[5]);
+														timeInts[3],timeInts[4],nanos);
 												
 												// Calculating the interaction end time by adding the duration (in nanoseconds) to the timestamp.
 												long duration = Math.round(Double.parseDouble(attributes[2]) * Double.valueOf(1e+9));

@@ -1,7 +1,5 @@
 package graph.temporal;
 
-import java.time.LocalDateTime;
-
 import org.apache.flink.api.common.operators.Order;
 import org.gradoop.temporal.model.impl.TemporalGraph;
 import org.gradoop.temporal.model.impl.functions.predicates.AsOf;
@@ -14,6 +12,7 @@ public final class TemporalGraphHandler {
 	private TemporalGraph currentGraph;
 	private int transmissionRisk;
 	private Long currentTimestamp;
+	private long timeIncrement;
 	/** The name of the log file that will be used by this class. */
 	private static String LOG_NAME = "graphs_log";
 	
@@ -43,5 +42,6 @@ public final class TemporalGraphHandler {
 	
 	public void nextTimeStep() {
 		
+		currentGraph = completeGraph.snapshot(new AsOf(currentTimestamp));
 	}
 }
