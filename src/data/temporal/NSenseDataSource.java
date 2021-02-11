@@ -128,6 +128,7 @@ final class NSenseDataSource extends TemporalDataSource {
 
 	private void setEdges() {
 		edges = new ArrayList<String>();
+		int edgeID = 0x0;
 		// Iterating through the folders for each vertex (i.e. each recording device).
 		for (File vertexFolder: inputContent) {
 			if (vertexFolder.isDirectory()) {
@@ -142,7 +143,6 @@ final class NSenseDataSource extends TemporalDataSource {
 							try {
 								BufferedReader br = new BufferedReader(new FileReader(file));
 								String line = br.readLine();
-								int edgeID = 0x0;
 								// Reading the CSV file, line by line.
 								while (line != null) {
 									String[] attributes = line.trim().split("\\s+");
@@ -164,7 +164,7 @@ final class NSenseDataSource extends TemporalDataSource {
 												for (int i = 0; i < timeStrings.length-1; i++) {
 													timeInts[i] = Integer.parseInt(timeStrings[i]);
 												}
-												// Converting the fraction of as second to nanoseconds.
+												// Converting the fraction of a second to nanoseconds.
 												int nanos = (int) (Double.parseDouble("0."+timeStrings[5])* Double.valueOf(1e+9));
 												
 												LocalDateTime fromTime = LocalDateTime.of(DATA_YEAR,timeInts[1],

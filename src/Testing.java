@@ -20,16 +20,17 @@ public class Testing {
 			
 //			TemporalCSVDataSource data = TemporalDataFactory
 //					.loadCSVDataSource("C:\\Users\\Student\\eclipse-workspace\\Honours-Year-Project\\data\\NSense_test");
-//			
-//			TemporalGraph graph = data.getTemporalGraph();
-//			System.out.println(graph.getEdges().count());
-//			
-//			TemporalEdge edge = graph.getEdges().sortPartition("validTime", Order.ASCENDING).collect().get(0);
-//			long timestamp = edge.getValidFrom();
-//			System.out.println(timestamp);
-//			
-//			System.out.println(graph.snapshot(new AsOf(timestamp)).getEdges().count());
 			
+			TemporalGraph graph = data.getTemporalGraph();
+			System.out.println(graph.getEdges().count());
+			
+			TemporalEdge edge = graph.getEdges().sortPartition("validTime", Order.ASCENDING).collect().get(0);
+			long timestamp = edge.getValidFrom();
+			System.out.println(timestamp);
+			
+			TemporalGraph graph2 = graph.snapshot(new AsOf(timestamp));
+			System.out.println(graph2.getEdges().count());
+			graph2.print();
 //			String query = "MATCH (v1)-[]->(v2) WHERE v1.infected = false AND v2.infected = true";
 //			
 //			TemporalGraphCollection newInfections = graph.query(query);
