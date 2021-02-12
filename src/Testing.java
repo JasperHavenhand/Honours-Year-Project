@@ -12,6 +12,7 @@ import org.gradoop.temporal.model.impl.pojo.TemporalVertex;
 
 import data.temporal.TemporalDataFactory;
 import data.temporal.TemporalDataFactory.inputType;
+import graph.temporal.TemporalGraphHandler;
 import utilities.Log;
 
 public class Testing {
@@ -27,42 +28,14 @@ public class Testing {
 			
 			TemporalGraph graph = data.getTemporalGraph();
 			
-//			TemporalEdge edge = graph.getEdges().sortPartition("validTime.f0", Order.ASCENDING).setParallelism(1).collect().get(0);
-//			long timestamp = edge.getValidFrom();
-//			System.out.println(timestamp);
-//			
-//			TemporalGraph graph2 = graph.snapshot(new AsOf(timestamp));
-//			System.out.println(graph2.getEdges().count());
-//			graph2.print();
-			
-//			String query = "MATCH (v1)-[]->(v2) WHERE v1.infected = false AND v2.infected = true";
-//			
-//			long verticesCount = graph.getVertices().count();
-//			GraphStatistics graphStats = new GraphStatistics(verticesCount,
-//					graph.getEdges().count(), verticesCount, verticesCount);
-//			
-//			TemporalGraphCollection newInfections = graph.query(query, graphStats);
-//			newInfections.print();
-//			for (TemporalVertex vertex: newInfections.getVertices().collect()) {
-//				if (!vertex.getPropertyValue("infected").getBoolean()) {
-//					vertex.setProperty("infected", true);
-//				}
-//			}
-			
-			System.out.println(graph.query("MATCH (v1) WHERE v1.infected = true").getVertices().count());
-			ArrayList<TemporalVertex> vertices = new ArrayList<TemporalVertex>();
-			for (TemporalVertex vertex: graph.getVertices().collect()) {
-				if (!vertex.getPropertyValue("infected").getBoolean()) {
-					vertices.add(vertex);
-				}
+			TemporalGraphHandler handler = new TemporalGraphHandler(graph, "infected", 0.5, 1);
+			Boolean end = handler.nextTimeStep();
+			while (!end) {
+	
+				end = handler.nextTimeStep();
+				
 			}
-			graph = graph.transformVertices((TemporalVertex v, TemporalVertex v2) -> {
-				if (vertices.contains(v)) {
-					v.setProperty("infected", true);
-				}
-				return v;
-			});
-			System.out.println(graph.query("MATCH (v1) WHERE v1.infected = true").getVertices().count());
+			handler.getCompleteGraph().print();
 			
 			
 		} catch (Exception e) {

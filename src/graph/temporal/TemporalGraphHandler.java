@@ -5,7 +5,6 @@ import java.util.Random;
 
 import org.apache.flink.api.common.operators.Order;
 import org.gradoop.temporal.model.impl.TemporalGraph;
-import org.gradoop.temporal.model.impl.TemporalGraphCollection;
 import org.gradoop.temporal.model.impl.functions.predicates.AsOf;
 import org.gradoop.temporal.model.impl.pojo.TemporalVertex;
 
@@ -18,18 +17,20 @@ public final class TemporalGraphHandler {
 	private String tokenName;
 	/** The probability of a vertex with the token passing it to its neighbours. */
 	private double tokenTransferProb;
-	private Long currentTimestamp;
 	private long timeIncrement;
+	private long currentTimestamp;
+	private long lastTimestamp;
 	/** The name of the log file that will be used by this class. */
 	private static String LOG_NAME = "graphs_log";
 	
 	/**
-	 * 
+	 * Used to handle the dissemination of the given token over the given temporal graph, timestep by timestep.
 	 * @param graph The temporalGraph to be handled.
 	 * @param tokenName The name of the vertex property that represents the token that will be disseminated.
 	 * @param tokenTransferProb The probability of the token being transferred over an active edge (0.0 to 1.0).
+	 * @param timeIncrement The time increment to be used between each timestep (in milliseconds). 
 	 */
-	public TemporalGraphHandler(TemporalGraph graph, String tokenName, double tokenTransferProb) {
+	public TemporalGraphHandler(TemporalGraph graph, String tokenName, double tokenTransferProb, long timeIncrement) {
 		try {
 			completeGraph = graph;
 			this.tokenTransferProb = tokenTransferProb;
@@ -37,6 +38,8 @@ public final class TemporalGraphHandler {
 			
 			currentTimestamp = completeGraph.getEdges().sortPartition("validTime.f0", Order.ASCENDING)
 					.setParallelism(1).collect().get(0).getValidFrom();
+			lastTimestamp = completeGraph.getEdges().sortPartition("validTime.f1", Order.DESCENDING)
+					.setParallelism(1).collect().get(0).getValidTo();
 			
 			currentGraph = completeGraph.snapshot(new AsOf(currentTimestamp));
 		} catch (Exception e) {
@@ -45,33 +48,49 @@ public final class TemporalGraphHandler {
 		}
 	}
 	
+	/** @return The complete temporal graph with every edge. */
 	public TemporalGraph getCompleteGraph() {
 		return completeGraph;
 	}
 	
+	/** @return A snapshot of the complete temporal graph at 
+	 * the current timestep of the {@code TemporalGraphHandler}. */
 	public TemporalGraph getCurrentGraph() {
 		return currentGraph;
 	}
 	
-	public void nextTimeStep() {
+	/** Updates the current graph to a snapshot of the complete graph at the next timestep.
+	 * The token transfer probability is then used determine which vertices without the token 
+	 * will receive it from a neighbour that does have it. 
+	 * The graphs are then updated to reflect the result of this operation. 
+	 * @return False if the next timestep is greater than the greatest timestamp of all the 
+	 * edges in the complete graph, or if an exception occurred. Otherwise, returns true. */
+	public Boolean nextTimeStep() {
 		try {
 			currentTimestamp += timeIncrement;
+			if (currentTimestamp > lastTimestamp) {
+				return false;
+			}
 			currentGraph = completeGraph.snapshot(new AsOf(currentTimestamp));
 			
-			String query = "MATCH (v1)-[]->(v2) WHERE v1."+tokenName+" = false AND v2."+tokenName+" = true";
+			String query = "MATCH (v1)-[]->(v2) WHERE (v1."+tokenName+" = false AND v2."+tokenName+" = true)"
+					+ "OR (v1."+tokenName+" = true AND v2."+tokenName+" = false)";
 			
 			List<TemporalVertex> tokenNeighbours = currentGraph.query(query).getVertices().collect();
 			Random random = new Random();
 			completeGraph = completeGraph.transformVertices((TemporalVertex v, TemporalVertex v2) -> {
-				if (tokenNeighbours.contains(v) && !v.getPropertyValue(tokenName).getBoolean()&& (random.nextDouble() <= tokenTransferProb)) {
+				if (tokenNeighbours.contains(v) && !v.getPropertyValue(tokenName).getBoolean() 
+						&& (random.nextDouble() <= tokenTransferProb)) {
 					v.setProperty(tokenName, true);
 				}
 				return v;
 			});
 			currentGraph = completeGraph.snapshot(new AsOf(currentTimestamp));
+			return true;
 		} catch (Exception e) {
 			Log.getLog(LOG_NAME).writeException(e);
 			e.printStackTrace();
+			return false;
 		}
 	}
 }
