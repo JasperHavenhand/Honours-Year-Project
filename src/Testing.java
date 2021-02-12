@@ -1,6 +1,8 @@
+import java.util.ArrayList;
 import java.util.Comparator;
 
 import org.apache.flink.api.common.operators.Order;
+import org.gradoop.flink.model.impl.operators.matching.common.statistics.GraphStatistics;
 import org.gradoop.temporal.io.impl.csv.TemporalCSVDataSource;
 import org.gradoop.temporal.model.impl.TemporalGraph;
 import org.gradoop.temporal.model.impl.TemporalGraphCollection;
@@ -25,21 +27,43 @@ public class Testing {
 			
 			TemporalGraph graph = data.getTemporalGraph();
 			
-			TemporalEdge edge = graph.getEdges().sortPartition("validTime.f0", Order.ASCENDING).setParallelism(1).collect().get(0);
-			long timestamp = edge.getValidFrom();
-			System.out.println(timestamp);
-			
-			TemporalGraph graph2 = graph.snapshot(new AsOf(timestamp));
-			System.out.println(graph2.getEdges().count());
-			graph2.print();
+//			TemporalEdge edge = graph.getEdges().sortPartition("validTime.f0", Order.ASCENDING).setParallelism(1).collect().get(0);
+//			long timestamp = edge.getValidFrom();
+//			System.out.println(timestamp);
+//			
+//			TemporalGraph graph2 = graph.snapshot(new AsOf(timestamp));
+//			System.out.println(graph2.getEdges().count());
+//			graph2.print();
 			
 //			String query = "MATCH (v1)-[]->(v2) WHERE v1.infected = false AND v2.infected = true";
 //			
-//			TemporalGraphCollection newInfections = graph.query(query);
-////			newInfections.print();
+//			long verticesCount = graph.getVertices().count();
+//			GraphStatistics graphStats = new GraphStatistics(verticesCount,
+//					graph.getEdges().count(), verticesCount, verticesCount);
+//			
+//			TemporalGraphCollection newInfections = graph.query(query, graphStats);
+//			newInfections.print();
 //			for (TemporalVertex vertex: newInfections.getVertices().collect()) {
-//				System.out.println(vertex.getPropertyValue("name"));
+//				if (!vertex.getPropertyValue("infected").getBoolean()) {
+//					vertex.setProperty("infected", true);
+//				}
 //			}
+			
+			System.out.println(graph.query("MATCH (v1) WHERE v1.infected = true").getVertices().count());
+			ArrayList<TemporalVertex> vertices = new ArrayList<TemporalVertex>();
+			for (TemporalVertex vertex: graph.getVertices().collect()) {
+				if (!vertex.getPropertyValue("infected").getBoolean()) {
+					vertices.add(vertex);
+				}
+			}
+			graph = graph.transformVertices((TemporalVertex v, TemporalVertex v2) -> {
+				if (vertices.contains(v)) {
+					v.setProperty("infected", true);
+				}
+				return v;
+			});
+			System.out.println(graph.query("MATCH (v1) WHERE v1.infected = true").getVertices().count());
+			
 			
 		} catch (Exception e) {
 			Log.getLog("data_sources_log").writeException(e);

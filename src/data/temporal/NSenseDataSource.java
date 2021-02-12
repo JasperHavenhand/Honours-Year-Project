@@ -7,6 +7,7 @@ import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import utilities.Configuration;
 import utilities.Log;
 
 /**
@@ -223,9 +224,9 @@ final class NSenseDataSource extends TemporalDataSource {
 	private void setMetadata() {
 		metaData = new ArrayList<String>();
 		String nameProp = "name:string";
-		String infectedProp = "infected:boolean";
+		String tokenProp = "infected:boolean";
 		metaData.add("g;"+GRAPHS_LABEL+";"+nameProp);
-		metaData.add("v;"+VERTICES_LABEL+";"+nameProp+","+infectedProp);
+		metaData.add("v;"+VERTICES_LABEL+";"+nameProp+","+tokenProp);
 	}
 
 }
