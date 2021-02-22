@@ -1,5 +1,6 @@
 import org.gradoop.temporal.io.impl.csv.TemporalCSVDataSource;
 import org.gradoop.temporal.model.impl.TemporalGraph;
+import org.gradoop.temporal.model.impl.pojo.TemporalVertex;
 
 import data.temporal.TemporalDataFactory;
 import graph.temporal.TemporalGraphHandler;
@@ -19,11 +20,11 @@ public class Testing {
 			TemporalGraph graph = data.getTemporalGraph();
 			
 			TemporalGraphHandler handler = new TemporalGraphHandler(graph, "infected", 0.5, 60000);
-			for (int i = 0; i < 60; i++) {
+			for (int i = 0; i < 3; i++) {
 				System.out.println("timestep " + i);
 				handler.nextTimeStep();
+				handler.getCompleteGraph().getVertices().print();
 			}
-			handler.getCompleteGraph().getVertices().print();
 			
 			
 		} catch (Exception e) {

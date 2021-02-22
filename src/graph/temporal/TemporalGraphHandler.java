@@ -1,5 +1,6 @@
 package graph.temporal;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -77,7 +78,11 @@ public final class TemporalGraphHandler {
 					+ "OR (v1."+tokenName+" = true AND v2."+tokenName+" = false)";
 			
 			List<TemporalVertex> tokenNeighbours = currentGraph.query(query).getVertices().collect();
-			completeGraph = TokenDisseminator.disseminate(completeGraph, tokenName, tokenTransferProb, tokenNeighbours);
+			List<String> neighbourIDs = new ArrayList<>();
+			for (TemporalVertex v: tokenNeighbours) {
+				neighbourIDs.add(v.getId().toString());
+			}
+			completeGraph = disseminate(completeGraph, tokenName, tokenTransferProb, neighbourIDs);
 			currentGraph = completeGraph.snapshot(new AsOf(currentTimestamp));
 			
 			return true;
@@ -88,28 +93,40 @@ public final class TemporalGraphHandler {
 		}
 	}
 	
-	static final class TokenDisseminator {
-		/**
-		 * A method for disseminating a token within a graph.
-		 * @param graph The graph to operate on.
-		 * @param tokenName The name of the vertex property being used as a token.
-		 * @param tokenTransferProb The probability of each possible token transfer occuring.
-		 * @param vertices The vertices in the current version of the graph which either have
-		 *  the token or have an immediate that does (i.e. the ones that might next receive the token).
-		 * @return
-		 */
-		static TemporalGraph disseminate(TemporalGraph graph, String tokenName, double tokenTransferProb, List<TemporalVertex> vertices) {
-			Random random = new Random();
-			TemporalGraph newGraph = graph.copy().transformVertices((TemporalVertex v, TemporalVertex v2) -> {
-				if (vertices.contains(v) && !v.getPropertyValue(tokenName).getBoolean() 
-						&& (random.nextDouble() < tokenTransferProb)) {
-					v.setProperty(tokenName, true);
-				}
-				return v;
-			});
-			
-			return newGraph;
-		}
+	static TemporalGraph disseminate(TemporalGraph graph, String tokenName, double tokenTransferProb, List<String> vertices) {
+		Random random = new Random();
+		TemporalGraph newGraph = graph.transformVertices((TemporalVertex v, TemporalVertex v2) -> {
+			if (vertices.contains(v.getId().toString()) && !v.getPropertyValue(tokenName).getBoolean() 
+					&& (random.nextDouble() < tokenTransferProb)) {
+				v.setProperty(tokenName, true);
+			}
+			return v;
+		});
+		return newGraph;
 	}
+	
+//	static final class TokenDisseminator {
+//		/**
+//		 * A method for disseminating a token within a graph.
+//		 * @param graph The graph to operate on.
+//		 * @param tokenName The name of the vertex property being used as a token.
+//		 * @param tokenTransferProb The probability of each possible token transfer occurring.
+//		 * @param vertices The IDs of the vertices in the current version of the graph which either have
+//		 *  the token or have an immediate neighbour that does (i.e. the ones that might next receive the token).
+//		 * @return
+//		 */
+//		static TemporalGraph disseminate(TemporalGraph graph, String tokenName, double tokenTransferProb, List<String> vertices) {
+//			Random random = new Random();
+//			TemporalGraph newGraph = graph.transformVertices((TemporalVertex v, TemporalVertex v2) -> {
+//				System.out.println(v);
+//				if (vertices.contains(v.getId().toString()) && !v.getPropertyValue(tokenName).getBoolean() 
+//						&& (random.nextDouble() < tokenTransferProb)) {
+//					v.setProperty(tokenName, true);
+//				}
+//				return v;
+//			});
+//			return newGraph;
+//		}
+//	}
 	
 }
