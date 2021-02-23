@@ -93,7 +93,16 @@ public final class TemporalGraphHandler {
 		}
 	}
 	
-	static TemporalGraph disseminate(TemporalGraph graph, String tokenName, double tokenTransferProb, List<String> vertices) {
+	/**
+	 * A method for disseminating a token within a graph.
+	 * @param graph The graph to operate on.
+	 * @param tokenName The name of the vertex property being used as a token.
+	 * @param tokenTransferProb The probability of each possible token transfer occurring.
+	 * @param vertices The IDs of the vertices in the current version of the graph which either have
+	 *  the token or have an immediate neighbour that does (i.e. the ones that might next receive the token).
+	 * @return Updated TemporalGraph.
+	 */
+	TemporalGraph disseminate(TemporalGraph graph, String tokenName, double tokenTransferProb, List<String> vertices) {
 		Random random = new Random();
 		TemporalGraph newGraph = graph.transformVertices((TemporalVertex v, TemporalVertex v2) -> {
 			if (vertices.contains(v.getId().toString()) && !v.getPropertyValue(tokenName).getBoolean() 
@@ -104,29 +113,5 @@ public final class TemporalGraphHandler {
 		});
 		return newGraph;
 	}
-	
-//	static final class TokenDisseminator {
-//		/**
-//		 * A method for disseminating a token within a graph.
-//		 * @param graph The graph to operate on.
-//		 * @param tokenName The name of the vertex property being used as a token.
-//		 * @param tokenTransferProb The probability of each possible token transfer occurring.
-//		 * @param vertices The IDs of the vertices in the current version of the graph which either have
-//		 *  the token or have an immediate neighbour that does (i.e. the ones that might next receive the token).
-//		 * @return
-//		 */
-//		static TemporalGraph disseminate(TemporalGraph graph, String tokenName, double tokenTransferProb, List<String> vertices) {
-//			Random random = new Random();
-//			TemporalGraph newGraph = graph.transformVertices((TemporalVertex v, TemporalVertex v2) -> {
-//				System.out.println(v);
-//				if (vertices.contains(v.getId().toString()) && !v.getPropertyValue(tokenName).getBoolean() 
-//						&& (random.nextDouble() < tokenTransferProb)) {
-//					v.setProperty(tokenName, true);
-//				}
-//				return v;
-//			});
-//			return newGraph;
-//		}
-//	}
 	
 }

@@ -20,11 +20,11 @@ public class Testing {
 			TemporalGraph graph = data.getTemporalGraph();
 			
 			TemporalGraphHandler handler = new TemporalGraphHandler(graph, "infected", 0.5, 60000);
-			for (int i = 0; i < 3; i++) {
+			for (int i = 0; i < 60; i++) {
 				System.out.println("timestep " + i);
-				handler.nextTimeStep();
-				handler.getCompleteGraph().getVertices().print();
+				System.out.println(handler.nextTimeStep());
 			}
+			handler.getCompleteGraph().getVertices().print();
 			
 			
 		} catch (Exception e) {
