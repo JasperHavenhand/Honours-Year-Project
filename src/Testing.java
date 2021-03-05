@@ -1,8 +1,12 @@
+import java.util.List;
+
+import org.apache.commons.lang3.tuple.Triple;
+import org.gradoop.common.model.impl.id.GradoopId;
 import org.gradoop.temporal.io.impl.csv.TemporalCSVDataSource;
 import org.gradoop.temporal.model.impl.TemporalGraph;
-import org.gradoop.temporal.model.impl.pojo.TemporalVertex;
 
 import data.temporal.TemporalDataFactory;
+import graph.temporal.Connectivity;
 import graph.temporal.TemporalGraphHandler;
 import utilities.Log;
 
@@ -19,14 +23,18 @@ public class Testing {
 			
 			TemporalGraph graph = data.getTemporalGraph();
 			
-			TemporalGraphHandler handler = new TemporalGraphHandler(graph, "infected", 0.5, 60000);
-			for (int i = 0; i < 60; i++) {
-				System.out.println("timestep " + i);
-				handler.nextTimeStep();
+			List<Triple<GradoopId, GradoopId, Long>> temporalities = Connectivity.temporalitiesOf(graph);
+			for (Triple<GradoopId, GradoopId, Long> t: temporalities) {
+				System.out.println(t.getLeft()+" "+t.getMiddle()+" "+t.getRight());
 			}
-			handler.getCompleteGraph().getVertices().print();
 			
-			
+//			TemporalGraphHandler handler = new TemporalGraphHandler(graph, "infected", 0.5, 60000);
+//			for (int i = 0; i < 60; i++) {
+//				System.out.println("timestep " + i);
+//				handler.nextTimeStep();
+//			}
+//			handler.getCompleteGraph().getVertices().print();
+				
 		} catch (Exception e) {
 			Log.getLog("data_sources_log").writeException(e);
 			e.printStackTrace();
