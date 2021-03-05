@@ -22,7 +22,7 @@ public class Testing {
 			TemporalGraphHandler handler = new TemporalGraphHandler(graph, "infected", 0.5, 60000);
 			for (int i = 0; i < 60; i++) {
 				System.out.println("timestep " + i);
-				System.out.println(handler.nextTimeStep());
+				handler.nextTimeStep();
 			}
 			handler.getCompleteGraph().getVertices().print();
 			
