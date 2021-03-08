@@ -29,9 +29,11 @@ public class Connectivity {
 			
 			for (TemporalVertex v1: vertices) {
 				for (TemporalVertex v2: vertices) {
-					if (v1.getId().compareTo(v2.getId()) < 0) { 
-						temporalities.add(Triple.of(v1.getId(), v2.getId(),
-								countEdgesBetween(graph, v1, v2)));
+					if (v1.getId().compareTo(v2.getId()) < 0) {
+						Long count = countEdgesBetween(graph, v1, v2);
+						if (count > 0) {
+							temporalities.add(Triple.of(v1.getId(), v2.getId(), count));
+						}
 					}
 				}				
 			}
