@@ -12,7 +12,7 @@ import org.gradoop.temporal.model.impl.pojo.TemporalVertex;
 
 import utilities.Log;
 
-public class Connectivity {
+class Connectivity {
 	/** The name of the log file that will be used by this class. */
 	private static String LOG_NAME = "graphs_log";
 	
@@ -22,7 +22,7 @@ public class Connectivity {
 	 * @return A list of triples containing the source vertex Id, 
 	 * target vertex Id and temporality of each distinct edge.
 	 */
-	public static List<Triple<GradoopId,GradoopId,Long>> temporalitiesOf(TemporalGraph graph) {
+	static List<Triple<GradoopId,GradoopId,Long>> temporalitiesOf(TemporalGraph graph) {
 		try {
 			List<Triple<GradoopId,GradoopId,Long>> temporalities = new ArrayList<Triple<GradoopId,GradoopId,Long>>();
 			List<TemporalVertex> vertices = graph.getVertices().collect();

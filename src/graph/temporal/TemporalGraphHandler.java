@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import org.apache.commons.lang3.tuple.Triple;
 import org.apache.flink.api.common.operators.Order;
+import org.gradoop.common.model.impl.id.GradoopId;
 import org.gradoop.temporal.model.impl.TemporalGraph;
 import org.gradoop.temporal.model.impl.functions.predicates.AsOf;
 import org.gradoop.temporal.model.impl.pojo.TemporalVertex;
@@ -58,6 +60,13 @@ public final class TemporalGraphHandler {
 	 * the current timestep of the {@code TemporalGraphHandler}. */
 	public TemporalGraph getCurrentGraph() {
 		return currentGraph;
+	}
+	
+	/**
+	 * @return The temporalities for each edge in the complete graph.
+	 */
+	public List<Triple<GradoopId,GradoopId,Long>> getTemporalities() {
+		return Connectivity.temporalitiesOf(completeGraph);
 	}
 	
 	/** Updates the current graph to a snapshot of the complete graph at the next timestep.

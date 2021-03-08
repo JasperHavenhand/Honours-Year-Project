@@ -6,7 +6,6 @@ import org.gradoop.temporal.io.impl.csv.TemporalCSVDataSource;
 import org.gradoop.temporal.model.impl.TemporalGraph;
 
 import data.temporal.TemporalDataFactory;
-import graph.temporal.Connectivity;
 import graph.temporal.TemporalGraphHandler;
 import utilities.Log;
 
@@ -22,13 +21,13 @@ public class Testing {
 					.loadCSVDataSource("C:\\Users\\Student\\eclipse-workspace\\Honours-Year-Project\\data\\NSense_test");
 			
 			TemporalGraph graph = data.getTemporalGraph();
-			
-			List<Triple<GradoopId, GradoopId, Long>> temporalities = Connectivity.temporalitiesOf(graph);
+			TemporalGraphHandler handler = new TemporalGraphHandler(graph, "infected", 0.5, 60000);
+					
+			List<Triple<GradoopId, GradoopId, Long>> temporalities = handler.getTemporalities();
 			for (Triple<GradoopId, GradoopId, Long> t: temporalities) {
 				System.out.println(t.getLeft()+" "+t.getMiddle()+" "+t.getRight());
 			}
 			
-//			TemporalGraphHandler handler = new TemporalGraphHandler(graph, "infected", 0.5, 60000);
 //			for (int i = 0; i < 60; i++) {
 //				System.out.println("timestep " + i);
 //				handler.nextTimeStep();
