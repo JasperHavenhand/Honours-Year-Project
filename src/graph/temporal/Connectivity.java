@@ -5,8 +5,10 @@ import java.util.List;
 
 import org.apache.commons.lang3.tuple.Triple;
 import org.apache.flink.api.common.functions.FilterFunction;
+import org.apache.flink.api.java.tuple.Tuple;
 import org.gradoop.common.model.impl.id.GradoopId;
 import org.gradoop.temporal.model.impl.TemporalGraph;
+import org.gradoop.temporal.model.impl.TemporalGraphCollection;
 import org.gradoop.temporal.model.impl.pojo.TemporalEdge;
 import org.gradoop.temporal.model.impl.pojo.TemporalVertex;
 
@@ -15,6 +17,20 @@ import utilities.Log;
 class Connectivity {
 	/** The name of the log file that will be used by this class. */
 	private static String LOG_NAME = "graphs_log";
+	
+	static List<Tuple> ReachabilitySetsOf(TemporalGraph graph) {
+		try {
+		List<Tuple> sets = new ArrayList<Tuple>();
+		List<TemporalVertex> vertices = graph.getVertices().collect();
+		String query = "MATCH (v1)->[*]->(v2)";
+		TemporalGraphCollection results = graph.query(query);
+		return sets;
+		} catch (Exception e) {
+			Log.getLog(LOG_NAME).writeException(e);
+			e.printStackTrace();
+			return null;
+		}
+	}
 	
 	/**
 	 * Finds the temporality of each distinct edge in the given graph.

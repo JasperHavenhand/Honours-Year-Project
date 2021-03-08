@@ -2,6 +2,7 @@ import java.util.List;
 
 import org.apache.commons.lang3.tuple.Triple;
 import org.gradoop.common.model.impl.id.GradoopId;
+import org.gradoop.flink.model.impl.operators.statistics.ConnectedComponentsDistribution;
 import org.gradoop.temporal.io.impl.csv.TemporalCSVDataSource;
 import org.gradoop.temporal.model.impl.TemporalGraph;
 
