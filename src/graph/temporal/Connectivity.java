@@ -5,7 +5,7 @@ import java.util.List;
 
 import org.apache.commons.lang3.tuple.Triple;
 import org.apache.flink.api.common.functions.FilterFunction;
-import org.apache.flink.api.java.tuple.Tuple;
+import org.apache.flink.api.java.tuple.Tuple2;
 import org.gradoop.common.model.impl.id.GradoopId;
 import org.gradoop.temporal.model.impl.TemporalGraph;
 import org.gradoop.temporal.model.impl.TemporalGraphCollection;
@@ -18,13 +18,48 @@ class Connectivity {
 	/** The name of the log file that will be used by this class. */
 	private static String LOG_NAME = "graphs_log";
 	
-	static List<Tuple> ReachabilitySetsOf(TemporalGraph graph) {
+	static List<Tuple2<TemporalVertex, List<TemporalVertex>>> reachabilitySetsOf(TemporalGraph graph) {
 		try {
-		List<Tuple> sets = new ArrayList<Tuple>();
-		List<TemporalVertex> vertices = graph.getVertices().collect();
-		String query = "MATCH (v1)->[*]->(v2)";
-		TemporalGraphCollection results = graph.query(query);
-		return sets;
+			List<Tuple2<TemporalVertex, List<TemporalVertex>>> sets = new ArrayList<Tuple2<TemporalVertex, List<TemporalVertex>>>();
+			List<TemporalVertex> vertices = graph.getVertices().collect();
+			for (TemporalVertex vertex: vertices) {
+				System.out.println(vertex.getPropertyValue("name"));
+				String query = "MATCH (v1)-[*]->(v2) WHERE v1.name = "+vertex.getPropertyValue("name");
+				List<TemporalVertex> results = graph.query(query).getVertices().collect();
+				results.remove(vertex);
+				sets.add(new Tuple2<TemporalVertex, List<TemporalVertex>>(vertex,results));
+			}
+			return sets;
+		} catch (Exception e) {
+			Log.getLog(LOG_NAME).writeException(e);
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	static List<List<TemporalVertex>> findTemporalPaths(TemporalGraph graph, List<TemporalVertex> unvisited, 
+			Long lastTime, List<TemporalVertex> path) {
+		try {
+			if (unvisited.size() == 0) {
+				List<List<TemporalVertex>> result = new ArrayList<List<TemporalVertex>>();
+				result.add(path);
+				return result;
+			}
+			List<List<TemporalVertex>> result = new ArrayList<List<TemporalVertex>>();
+			for (TemporalVertex vertex: unvisited) {
+				String query = "MATCH (v1)-[e:]->(v2) WHERE v1.name = "+vertex.getPropertyValue("name")+
+						"AND e.validFrom <= "+lastTime+" AND e.validTo >= "+lastTime;
+				List<TemporalVertex> next = graph.query(query).getVertices().collect();
+				for (TemporalVertex n: next) {
+					List<TemporalVertex> newUnvisited = unvisited;
+					newUnvisited.remove(vertex);
+					List<TemporalVertex> newPath = path;
+					newPath.add(vertex);
+					Long newTime;
+					result.addAll(findTemporalPaths(graph,newUnvisited,newTime,newPath));
+				}
+			}
+			return result;
 		} catch (Exception e) {
 			Log.getLog(LOG_NAME).writeException(e);
 			e.printStackTrace();

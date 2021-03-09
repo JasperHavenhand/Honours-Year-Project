@@ -7,6 +7,7 @@ import java.util.Random;
 import org.apache.commons.lang3.tuple.Triple;
 import org.apache.flink.api.common.operators.Order;
 import org.apache.flink.api.java.tuple.Tuple;
+import org.apache.flink.api.java.tuple.Tuple2;
 import org.gradoop.common.model.impl.id.GradoopId;
 import org.gradoop.temporal.model.impl.TemporalGraph;
 import org.gradoop.temporal.model.impl.functions.predicates.AsOf;
@@ -70,8 +71,8 @@ public final class TemporalGraphHandler {
 		return Connectivity.temporalitiesOf(completeGraph);
 	}
 	
-	public List<Tuple> ReachabilitySetsOf() {
-		return Connectivity.ReachabilitySetsOf(completeGraph);
+	public List<Tuple2<TemporalVertex, List<TemporalVertex>>> getReachabilitySets() {
+		return Connectivity.reachabilitySetsOf(completeGraph);
 	}
 	
 	/** Updates the current graph to a snapshot of the complete graph at the next timestep.
