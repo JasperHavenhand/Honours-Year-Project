@@ -37,29 +37,28 @@ class Connectivity {
 		}
 	}
 	
-	static List<List<TemporalVertex>> findTemporalPaths(TemporalGraph graph, List<TemporalVertex> unvisited, 
-			Long lastTime, List<TemporalVertex> path) {
+	static List<TemporalVertex> findReachableVertices(TemporalGraph graph, TemporalVertex source, 
+			List<TemporalVertex> visited, Long lastTime) {
 		try {
-			if (unvisited.size() == 0) {
-				List<List<TemporalVertex>> result = new ArrayList<List<TemporalVertex>>();
-				result.add(path);
+			String query = "MATCH (v1)-[e:]->(v2) WHERE v1.name = "+source.getPropertyValue("name")+
+					"AND e.validFrom <= "+lastTime+" AND e.validTo >= "+lastTime;
+			List<TemporalVertex> next = graph.query(query).getVertices().collect();
+			List<TemporalVertex> result = new ArrayList<TemporalVertex>();
+			if (!visited.equals(null)) {
+				next.removeAll(visited);
+			}
+			if (next.isEmpty()) {
+				result.add(source);
+				return result;
+			} else {
+				for (TemporalVertex n: next) {
+					List<TemporalVertex> newVisited = visited;
+					newVisited.add(n);
+					Long newTime;
+					result.addAll(findReachableVertices(graph,n,newVisited,newTime));
+				}
 				return result;
 			}
-			List<List<TemporalVertex>> result = new ArrayList<List<TemporalVertex>>();
-			for (TemporalVertex vertex: unvisited) {
-				String query = "MATCH (v1)-[e:]->(v2) WHERE v1.name = "+vertex.getPropertyValue("name")+
-						"AND e.validFrom <= "+lastTime+" AND e.validTo >= "+lastTime;
-				List<TemporalVertex> next = graph.query(query).getVertices().collect();
-				for (TemporalVertex n: next) {
-					List<TemporalVertex> newUnvisited = unvisited;
-					newUnvisited.remove(vertex);
-					List<TemporalVertex> newPath = path;
-					newPath.add(vertex);
-					Long newTime;
-					result.addAll(findTemporalPaths(graph,newUnvisited,newTime,newPath));
-				}
-			}
-			return result;
 		} catch (Exception e) {
 			Log.getLog(LOG_NAME).writeException(e);
 			e.printStackTrace();
