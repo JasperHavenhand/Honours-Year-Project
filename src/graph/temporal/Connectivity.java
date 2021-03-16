@@ -10,6 +10,7 @@ import org.gradoop.common.model.impl.id.GradoopId;
 import org.gradoop.temporal.model.impl.TemporalGraph;
 import org.gradoop.temporal.model.impl.TemporalGraphCollection;
 import org.gradoop.temporal.model.impl.pojo.TemporalEdge;
+import org.gradoop.temporal.model.impl.pojo.TemporalGraphHead;
 import org.gradoop.temporal.model.impl.pojo.TemporalVertex;
 
 import utilities.Log;
@@ -23,10 +24,7 @@ class Connectivity {
 			List<Tuple2<TemporalVertex, List<TemporalVertex>>> sets = new ArrayList<Tuple2<TemporalVertex, List<TemporalVertex>>>();
 			List<TemporalVertex> vertices = graph.getVertices().collect();
 			for (TemporalVertex vertex: vertices) {
-				System.out.println(vertex.getPropertyValue("name"));
-				String query = "MATCH (v1)-[*]->(v2) WHERE v1.name = "+vertex.getPropertyValue("name");
-				List<TemporalVertex> results = graph.query(query).getVertices().collect();
-				results.remove(vertex);
+				List<TemporalVertex> results = findReachableVertices(graph, vertex);
 				sets.add(new Tuple2<TemporalVertex, List<TemporalVertex>>(vertex,results));
 			}
 			return sets;
@@ -37,28 +35,45 @@ class Connectivity {
 		}
 	}
 	
-	static List<TemporalVertex> findReachableVertices(TemporalGraph graph, TemporalVertex source, 
+	static List<TemporalVertex> findReachableVertices(TemporalGraph graph, TemporalVertex source) {
+		return findReachableVertices(graph, source, null, null);
+	}
+	
+	private static List<TemporalVertex> findReachableVertices(TemporalGraph graph, TemporalVertex source, 
 			List<TemporalVertex> visited, Long lastTime) {
 		try {
-			String query = "MATCH (v1)-[e:]->(v2) WHERE v1.name = "+source.getPropertyValue("name")+
-					"AND e.validFrom <= "+lastTime+" AND e.validTo >= "+lastTime;
-			List<TemporalVertex> next = graph.query(query).getVertices().collect();
-			List<TemporalVertex> result = new ArrayList<TemporalVertex>();
-			if (!visited.equals(null)) {
-				next.removeAll(visited);
-			}
-			if (next.isEmpty()) {
-				result.add(source);
-				return result;
+			String query;
+			if (lastTime == null) {
+				query = "MATCH (v1)-[e]->(v2) WHERE v1.name = \""+source.getPropertyValue("name")+"\"";
 			} else {
-				for (TemporalVertex n: next) {
-					List<TemporalVertex> newVisited = visited;
-					newVisited.add(n);
-					Long newTime;
-					result.addAll(findReachableVertices(graph,n,newVisited,newTime));
-				}
-				return result;
+				query = "MATCH (v1)-[e]->(v2) WHERE v1.name = \""+source.getPropertyValue("name")+
+						"\" AND e.validFrom <= "+lastTime+" AND e.validTo >= "+lastTime;
 			}
+			if (visited == null) {
+				visited = new ArrayList<TemporalVertex>();
+			}
+			visited.add(source);
+			TemporalGraphCollection collection = graph.query(query);
+			List<TemporalVertex> vertices = collection.getVertices().collect();
+			vertices.remove(source);
+			List<TemporalEdge> edges = collection.getEdges().collect();
+
+			List<TemporalVertex> result = new ArrayList<TemporalVertex>();
+			result.add(source);
+			for (TemporalVertex v: vertices) {
+				if (!visited.contains(v)) {
+					Long newTime = null;
+					for (TemporalEdge e: edges) {
+						if (e.getSourceId() == source.getId() &&
+								e.getTargetId() == v.getId()) {
+							newTime = e.getValidFrom();
+							break;
+						}
+					}
+					result.addAll(findReachableVertices(graph,v,visited,newTime));
+				}	
+			}
+			return result;
 		} catch (Exception e) {
 			Log.getLog(LOG_NAME).writeException(e);
 			e.printStackTrace();

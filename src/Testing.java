@@ -32,13 +32,13 @@ public class Testing {
 //			}
 			
 			List<Tuple2<TemporalVertex, List<TemporalVertex>>> reachabilitySets = handler.getReachabilitySets();
-			for (Tuple2<TemporalVertex, List<TemporalVertex>> set: reachabilitySets) {
-				System.out.print(set.f0.getPropertyValue("name") + "-");
-				for (TemporalVertex v: set.f1) {
-					System.out.print(v.getPropertyValue("name"));
-				}
-				System.out.println();
-			}
+//			for (Tuple2<TemporalVertex, List<TemporalVertex>> set: reachabilitySets) {
+//				System.out.print(set.f0.getPropertyValue("name") + "-");
+//				for (TemporalVertex v: set.f1) {
+//					System.out.print(v.getPropertyValue("name") +" ");
+//				}
+//				System.out.println();
+//			}
 			
 //			for (int i = 0; i < 60; i++) {
 //				System.out.println("timestep " + i);
