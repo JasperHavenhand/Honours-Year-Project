@@ -29,10 +29,6 @@ public class Testing {
 			
 //			System.out.println(handler.getCompleteGraph().getEdges().count());
 			handler.mergeEdges(1474113600000L, 600000L);
-			List<TemporalEdge> edges = handler.getCompleteGraph().getEdges().collect();
-			for (int i=0 ; i < 10; i++) {
-				System.out.println(edges.get(i));
-			}
 //			System.out.println(handler.getCompleteGraph().getEdges().count());
 			
 //			List<Triple<GradoopId, GradoopId, Long>> temporalities = handler.getTemporalities();

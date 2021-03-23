@@ -2,6 +2,7 @@ package graph.temporal;
 
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -10,6 +11,9 @@ import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.gradoop.common.model.impl.id.GradoopId;
 import org.gradoop.flink.model.api.functions.TransformationFunction;
+import org.gradoop.flink.model.impl.operators.aggregation.functions.count.Count;
+import org.gradoop.flink.model.impl.operators.grouping.Grouping;
+import org.gradoop.flink.model.impl.operators.grouping.GroupingStrategy;
 import org.gradoop.flink.model.impl.operators.keyedgrouping.GroupingKeys;
 import org.gradoop.temporal.model.api.TimeDimension;
 import org.gradoop.temporal.model.impl.TemporalGraph;
@@ -146,7 +150,7 @@ class Connectivity {
 				TransformationFunction.keep(),
 				// Keep the vertices.
 				TransformationFunction.keep(), 
-				// merge the edges.
+				// Merge the edges.
 				(e1, e2) -> {
 					if (e1.getValidFrom().compareTo(startTime) < 0) {
 						e1.setValidFrom(startTime);
@@ -157,12 +161,6 @@ class Connectivity {
 					return e1;
 				}
 		);
-//		newGraph.groupBy(Collections.singletonList(TemporalGroupingKeys.duration(TimeDimension.VALID_TIME, ChronoUnit.MILLIS)));
-//		newGraph.groupBy(Collections.singletonList(GroupingKeys.nothing()),Collections.singletonList(TemporalGroupingKeys.timeInterval(TimeDimension.VALID_TIME)));
-//		List<String> edgeKeys = new ArrayList<String>();
-//		edgeKeys.add("ValidFrom");
-//		edgeKeys.add("ValidTo");
-//		newGraph = newGraph.groupBy(new ArrayList<String>(), edgeKeys);
 		return newGraph;
 	}
 	
