@@ -1,16 +1,21 @@
 package graph.temporal;
 
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.lang3.tuple.Triple;
 import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.gradoop.common.model.impl.id.GradoopId;
+import org.gradoop.flink.model.api.functions.TransformationFunction;
+import org.gradoop.flink.model.impl.operators.keyedgrouping.GroupingKeys;
+import org.gradoop.temporal.model.api.TimeDimension;
 import org.gradoop.temporal.model.impl.TemporalGraph;
 import org.gradoop.temporal.model.impl.TemporalGraphCollection;
+import org.gradoop.temporal.model.impl.operators.keyedgrouping.TemporalGroupingKeys;
 import org.gradoop.temporal.model.impl.pojo.TemporalEdge;
-import org.gradoop.temporal.model.impl.pojo.TemporalGraphHead;
 import org.gradoop.temporal.model.impl.pojo.TemporalVertex;
 
 import utilities.Log;
@@ -133,5 +138,35 @@ class Connectivity {
 			e.printStackTrace();
 			return null;
 		}
+	}
+	
+	static TemporalGraph mergeEdges(TemporalGraph graph, Long startTime, Long duration) {
+		TemporalGraph newGraph = graph.transform(
+				// Keep the graph heads.
+				TransformationFunction.keep(),
+				// Keep the vertices.
+				TransformationFunction.keep(), 
+				// merge the edges.
+				(e1, e2) -> {
+					if (e1.getValidFrom().compareTo(startTime) < 0) {
+						e1.setValidFrom(startTime);
+						e1.setTxFrom(startTime);
+						e1.setValidTo(startTime+duration);
+						e1.setTxTo(startTime+duration);
+					}
+					return e1;
+				}
+		);
+//		newGraph.groupBy(Collections.singletonList(TemporalGroupingKeys.duration(TimeDimension.VALID_TIME, ChronoUnit.MILLIS)));
+//		newGraph.groupBy(Collections.singletonList(GroupingKeys.nothing()),Collections.singletonList(TemporalGroupingKeys.timeInterval(TimeDimension.VALID_TIME)));
+//		List<String> edgeKeys = new ArrayList<String>();
+//		edgeKeys.add("ValidFrom");
+//		edgeKeys.add("ValidTo");
+//		newGraph = newGraph.groupBy(new ArrayList<String>(), edgeKeys);
+		return newGraph;
+	}
+	
+	static TemporalGraph delayEdges(TemporalGraph graph, Long time) {
+		return null;
 	}
 }

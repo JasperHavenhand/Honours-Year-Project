@@ -6,6 +6,7 @@ import org.gradoop.common.model.impl.id.GradoopId;
 import org.gradoop.flink.model.impl.operators.statistics.ConnectedComponentsDistribution;
 import org.gradoop.temporal.io.impl.csv.TemporalCSVDataSource;
 import org.gradoop.temporal.model.impl.TemporalGraph;
+import org.gradoop.temporal.model.impl.pojo.TemporalEdge;
 import org.gradoop.temporal.model.impl.pojo.TemporalVertex;
 
 import data.temporal.TemporalDataFactory;
@@ -24,14 +25,22 @@ public class Testing {
 					.loadCSVDataSource("C:\\Users\\Student\\eclipse-workspace\\Honours-Year-Project\\data\\NSense_test");
 			
 			TemporalGraph graph = data.getTemporalGraph();
-			TemporalGraphHandler handler = new TemporalGraphHandler(graph, "infected", 0.5, 60000);
-					
+			TemporalGraphHandler handler = new TemporalGraphHandler(graph, "infected", 0.5, 60000L);
+			
+//			System.out.println(handler.getCompleteGraph().getEdges().count());
+			handler.mergeEdges(1474113600000L, 600000L);
+			List<TemporalEdge> edges = handler.getCompleteGraph().getEdges().collect();
+			for (int i=0 ; i < 10; i++) {
+				System.out.println(edges.get(i));
+			}
+//			System.out.println(handler.getCompleteGraph().getEdges().count());
+			
 //			List<Triple<GradoopId, GradoopId, Long>> temporalities = handler.getTemporalities();
 //			for (Triple<GradoopId, GradoopId, Long> t: temporalities) {
 //				System.out.println(t.getLeft()+" "+t.getMiddle()+" "+t.getRight());
 //			}
 			
-			List<Tuple2<TemporalVertex, List<TemporalVertex>>> reachabilitySets = handler.getReachabilitySets();
+//			List<Tuple2<TemporalVertex, List<TemporalVertex>>> reachabilitySets = handler.getReachabilitySets();
 //			for (Tuple2<TemporalVertex, List<TemporalVertex>> set: reachabilitySets) {
 //				System.out.print(set.f0.getPropertyValue("name") + "-");
 //				for (TemporalVertex v: set.f1) {
