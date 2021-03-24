@@ -2,14 +2,18 @@ package graph.temporal;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import org.apache.commons.lang3.tuple.Triple;
 import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.operators.Order;
 import org.apache.flink.api.java.DataSet;
+import org.apache.flink.api.java.ExecutionEnvironment;
+import org.apache.flink.api.java.operators.FilterOperator;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.gradoop.common.model.impl.id.GradoopId;
 import org.gradoop.flink.model.api.functions.TransformationFunction;
+import org.gradoop.flink.model.impl.operators.sampling.functions.RandomFilter;
 import org.gradoop.temporal.model.impl.TemporalGraph;
 import org.gradoop.temporal.model.impl.TemporalGraphCollection;
 import org.gradoop.temporal.model.impl.pojo.TemporalEdge;
@@ -131,7 +135,7 @@ class Connectivity {
 				private static final long serialVersionUID = -7608048626367438469L;
 				@Override
 				public boolean filter(TemporalEdge edge) throws Exception {
-					return (edge.getSourceId().compareTo(v1.getId()) == 0 &
+					return (edge.getSourceId().compareTo(v1.getId()) == 0 &&
 							edge.getTargetId().compareTo(v2.getId()) == 0);
 				}
 			}).count();
@@ -201,15 +205,32 @@ class Connectivity {
 	static TemporalGraph limitTemporality(TemporalGraph graph, int limit) {
 		try {
 			DataSet<TemporalEdge> oldEdgeSet = graph.getEdges();
-			DataSet<TemporalEdge> newEdgeSet;
+			List<TemporalEdge> newEdgeSet = new ArrayList<TemporalEdge>();
 			List<TemporalVertex> vertices = graph.getVertices().collect();
+			Random rdm = new Random();
+			
 			for (TemporalVertex v1: vertices) {
 				for (TemporalVertex v2: vertices) {
-					
-				}
+					if (v1.getId().compareTo(v2.getId()) < 0) {
+						List<TemporalEdge> filteredEdges = 
+								oldEdgeSet.filter(new FilterFunction<TemporalEdge>() {
+									private static final long serialVersionUID = -5742127640296074846L;
+									@Override
+									public boolean filter(TemporalEdge edge) throws Exception {
+										return ((edge.getSourceId().compareTo(v1.getId()) == 0 &&
+												edge.getTargetId().compareTo(v2.getId()) == 0) 
+												||
+												(edge.getSourceId().compareTo(v2.getId()) == 0 &&
+												edge.getTargetId().compareTo(v1.getId()) == 0));
+									}
+								}).collect();
+						
+						//Select [limit] random numbers in range 0-(filteredEdges.size()-1) and get the edges at those positions.
+						newEdgeSet.addAll(filteredEdges);
+					}	
+				}	
 			}
-			
-			return null;
+			return graph.getFactory().fromCollections(graph.getVertices().collect(), newEdgeSet);
 		} catch (Exception e) {
 			Log.getLog(LOG_NAME).writeException(e);
 			e.printStackTrace();
