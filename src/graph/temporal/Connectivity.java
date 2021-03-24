@@ -1,24 +1,16 @@
 package graph.temporal;
 
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.lang3.tuple.Triple;
 import org.apache.flink.api.common.functions.FilterFunction;
+import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.gradoop.common.model.impl.id.GradoopId;
 import org.gradoop.flink.model.api.functions.TransformationFunction;
-import org.gradoop.flink.model.impl.operators.aggregation.functions.count.Count;
-import org.gradoop.flink.model.impl.operators.grouping.Grouping;
-import org.gradoop.flink.model.impl.operators.grouping.GroupingStrategy;
-import org.gradoop.flink.model.impl.operators.keyedgrouping.GroupingKeys;
-import org.gradoop.temporal.model.api.TimeDimension;
 import org.gradoop.temporal.model.impl.TemporalGraph;
 import org.gradoop.temporal.model.impl.TemporalGraphCollection;
-import org.gradoop.temporal.model.impl.operators.keyedgrouping.TemporalGroupingKeys;
 import org.gradoop.temporal.model.impl.pojo.TemporalEdge;
 import org.gradoop.temporal.model.impl.pojo.TemporalVertex;
 
@@ -28,6 +20,11 @@ class Connectivity {
 	/** The name of the log file that will be used by this class. */
 	private static String LOG_NAME = "graphs_log";
 	
+	/**
+	 * Finds the reachability sets of the given temporal graph.
+	 * @param graph
+	 * @return Each vertex of the given graph, paired with a list of the vertices temporarily reachable from it.
+	 */
 	static List<Tuple2<TemporalVertex, List<TemporalVertex>>> reachabilitySetsOf(TemporalGraph graph) {
 		try {
 			List<Tuple2<TemporalVertex, List<TemporalVertex>>> sets = new ArrayList<Tuple2<TemporalVertex, List<TemporalVertex>>>();
@@ -132,9 +129,9 @@ class Connectivity {
 			return graph.getEdges().filter(new FilterFunction<TemporalEdge>() {
 				private static final long serialVersionUID = -7608048626367438469L;
 				@Override
-				public boolean filter(TemporalEdge value) throws Exception {
-					return (value.getSourceId().compareTo(v1.getId()) == 0 &
-							value.getTargetId().compareTo(v2.getId()) == 0);
+				public boolean filter(TemporalEdge edge) throws Exception {
+					return (edge.getSourceId().compareTo(v1.getId()) == 0 &
+							edge.getTargetId().compareTo(v2.getId()) == 0);
 				}
 			}).count();
 		} catch (Exception e) {
@@ -145,23 +142,34 @@ class Connectivity {
 	}
 	
 	static TemporalGraph mergeEdges(TemporalGraph graph, Long startTime, Long duration) {
-		TemporalGraph newGraph = graph.transform(
-				// Keep the graph heads.
-				TransformationFunction.keep(),
-				// Keep the vertices.
-				TransformationFunction.keep(), 
-				// Merge the edges.
-				(e1, e2) -> {
-					if (e1.getValidFrom().compareTo(startTime) < 0) {
-						e1.setValidFrom(startTime);
-						e1.setTxFrom(startTime);
-						e1.setValidTo(startTime+duration);
-						e1.setTxTo(startTime+duration);
+		try {	
+			TemporalGraph newGraph = graph.transform(
+					// Keep the graph heads.
+					TransformationFunction.keep(),
+					// Keep the vertices.
+					TransformationFunction.keep(), 
+					// Merge the edges.
+					(e1, e2) -> {
+						if (e1.getValidFrom().compareTo(startTime) < 0) {
+							e1.setValidFrom(startTime);
+							e1.setTxFrom(startTime);
+							e1.setValidTo(startTime+duration);
+							e1.setTxTo(startTime+duration);
+						}
+						return e1;
 					}
-					return e1;
-				}
-		);
-		return newGraph;
+			);
+			//Removing any identical edges created during the merging.
+			DataSet<TemporalEdge> distinctEdges = newGraph.getEdges().distinct("label",
+					"sourceId","targetId","transactionTime","validTime");
+			
+			return newGraph.getFactory().fromDataSets(newGraph.getVertices(), distinctEdges);
+			
+		} catch (Exception e) {
+			Log.getLog(LOG_NAME).writeException(e);
+			e.printStackTrace();
+			return null;
+		}
 	}
 	
 	static TemporalGraph delayEdges(TemporalGraph graph, Long time) {

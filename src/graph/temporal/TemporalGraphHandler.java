@@ -77,11 +77,20 @@ public final class TemporalGraphHandler {
 		return Connectivity.reachabilitySetsOf(completeGraph);
 	}
 	
+	/**
+	 * Merges all edges active before the specified startTime, so that they are active from startTime to startTime+duration.
+	 * @param startTime A timestamp, in epoch milliseconds.
+	 * @param duration The duration of the merged edges, in milliseconds.
+	 */
 	public void mergeEdges(long startTime, long duration) {
 		completeGraph = Connectivity.mergeEdges(completeGraph, startTime, duration);
 		currentGraph = completeGraph.snapshot(new AsOf(currentTimestamp));
 	}
 	
+	/**
+	 * Delays all edges by the specified amount of time.
+	 * @param time The time to delay by, in milliseconds.
+	 */
 	public void delayEdges(long time) {
 		completeGraph = Connectivity.delayEdges(completeGraph, time);
 		currentGraph = completeGraph.snapshot(new AsOf(currentTimestamp));

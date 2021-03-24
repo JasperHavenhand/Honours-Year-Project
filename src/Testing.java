@@ -27,9 +27,7 @@ public class Testing {
 			TemporalGraph graph = data.getTemporalGraph();
 			TemporalGraphHandler handler = new TemporalGraphHandler(graph, "infected", 0.5, 60000L);			
 			
-//			System.out.println(handler.getCompleteGraph().getEdges().count());
-//			handler.mergeEdges(1474113600000L, 600000L);
-//			System.out.println(handler.getCompleteGraph().getEdges().count());
+			handler.mergeEdges(1474113600000L, 600000L);
 			
 //			List<Triple<GradoopId, GradoopId, Long>> temporalities = handler.getTemporalities();
 //			for (Triple<GradoopId, GradoopId, Long> t: temporalities) {
