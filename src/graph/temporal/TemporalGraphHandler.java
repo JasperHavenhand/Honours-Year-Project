@@ -96,6 +96,15 @@ public final class TemporalGraphHandler {
 		currentGraph = completeGraph.snapshot(new AsOf(currentTimestamp));
 	}
 	
+	/**
+	 * Set a limit on the temporality, i.e., the number of times an edge between two vertices can be active.
+	 * @param limit an integer value.
+	 */
+	public void limitTemporality(int limit) {
+		completeGraph = Connectivity.limitTemporality(completeGraph, limit);
+		currentGraph = completeGraph.snapshot(new AsOf(currentTimestamp));
+	}
+	
 	/** Updates the current graph to a snapshot of the complete graph at the next timestep.
 	 * The token transfer probability is then used determine which vertices without the token 
 	 * will receive it from a neighbour that does have it. 

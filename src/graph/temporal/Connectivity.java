@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.apache.commons.lang3.tuple.Triple;
 import org.apache.flink.api.common.functions.FilterFunction;
+import org.apache.flink.api.common.operators.Order;
 import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.gradoop.common.model.impl.id.GradoopId;
@@ -101,7 +102,7 @@ class Connectivity {
 			for (TemporalVertex v1: vertices) {
 				for (TemporalVertex v2: vertices) {
 					if (v1.getId().compareTo(v2.getId()) < 0) {
-						Long count = countEdgesBetween(graph, v1, v2);
+						Long count = countEdgesBetween(graph, v1, v2) + countEdgesBetween(graph, v2, v1);
 						if (count > 0) {
 							temporalities.add(Triple.of(v1.getId(), v2.getId(), count));
 						}
@@ -160,7 +161,7 @@ class Connectivity {
 					}
 			);
 			//Removing any identical edges created during the merging.
-			DataSet<TemporalEdge> distinctEdges = newGraph.getEdges().distinct("label",
+			DataSet<TemporalEdge> distinctEdges = newGraph.getEdges().distinct(
 					"sourceId","targetId","transactionTime","validTime");
 			
 			return newGraph.getFactory().fromDataSets(newGraph.getVertices(), distinctEdges);
@@ -188,5 +189,31 @@ class Connectivity {
 				}
 		);
 		return newGraph;
+	}
+	
+	/**
+	 * Limits the temporality of the given graph by grouping the edges by their target and source vertices,
+	 * and then randomly removing edges from each group until the groups all no larger than the specified limit.
+	 * @param graph
+	 * @param limit
+	 * @return
+	 */
+	static TemporalGraph limitTemporality(TemporalGraph graph, int limit) {
+		try {
+			DataSet<TemporalEdge> oldEdgeSet = graph.getEdges();
+			DataSet<TemporalEdge> newEdgeSet;
+			List<TemporalVertex> vertices = graph.getVertices().collect();
+			for (TemporalVertex v1: vertices) {
+				for (TemporalVertex v2: vertices) {
+					
+				}
+			}
+			
+			return null;
+		} catch (Exception e) {
+			Log.getLog(LOG_NAME).writeException(e);
+			e.printStackTrace();
+			return null;
+		}
 	}
 }
