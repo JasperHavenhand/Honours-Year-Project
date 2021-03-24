@@ -165,6 +165,20 @@ class Connectivity {
 	}
 	
 	static TemporalGraph delayEdges(TemporalGraph graph, Long time) {
-		return null;
+		TemporalGraph newGraph = graph.transform(
+				// Keep the graph heads.
+				TransformationFunction.keep(),
+				// Keep the vertices.
+				TransformationFunction.keep(), 
+				// Delay the edges.
+				(e1, e2) -> {
+					e1.setValidFrom(e1.getValidFrom()+time);
+					e1.setTxFrom(e1.getTxFrom()+time);
+					e1.setValidTo(e1.getValidTo()+time);
+					e1.setTxTo(e1.getTxTo()+time);
+					return e1;
+				}
+		);
+		return newGraph;
 	}
 }

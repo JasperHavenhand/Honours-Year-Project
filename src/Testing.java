@@ -25,10 +25,10 @@ public class Testing {
 					.loadCSVDataSource("C:\\Users\\Student\\eclipse-workspace\\Honours-Year-Project\\data\\NSense_test");
 			
 			TemporalGraph graph = data.getTemporalGraph();
-			TemporalGraphHandler handler = new TemporalGraphHandler(graph, "infected", 0.5, 60000L);
+			TemporalGraphHandler handler = new TemporalGraphHandler(graph, "infected", 0.5, 60000L);			
 			
 //			System.out.println(handler.getCompleteGraph().getEdges().count());
-			handler.mergeEdges(1474113600000L, 600000L);
+//			handler.mergeEdges(1474113600000L, 600000L);
 //			System.out.println(handler.getCompleteGraph().getEdges().count());
 			
 //			List<Triple<GradoopId, GradoopId, Long>> temporalities = handler.getTemporalities();
