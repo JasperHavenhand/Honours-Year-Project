@@ -28,11 +28,12 @@ public class Testing {
 			TemporalGraph graph = data.getTemporalGraph();
 			TemporalGraphHandler handler = new TemporalGraphHandler(graph, "infected", 0.5, 60000L);			
 
-			handler.limitTemporality(1);
-//			List<Triple<GradoopId, GradoopId, Long>> temps = handler.getTemporalities();
-//			for (Triple<GradoopId, GradoopId, Long> entry: temps) {
-//				System.out.println(entry.getLeft() + " " + entry.getMiddle() + " " + entry.getRight());
-//			}
+//			handler.limitTemporality(1);
+			handler.deleteEdgeBetween(GradoopId.fromString("000000000000000000000000"), GradoopId.fromString("000000000000000000000001"));
+			List<Triple<GradoopId, GradoopId, Long>> temps = handler.getTemporalities();
+			for (Triple<GradoopId, GradoopId, Long> entry: temps) {
+				System.out.println(entry.getLeft() + " " + entry.getMiddle() + " " + entry.getRight());
+			}
 			System.out.println(handler.getCompleteGraph().getEdges().count());
 			
 //			List<Tuple2<GradoopId, List<GradoopId>>> reachabilitySets = handler.getReachabilitySets();

@@ -106,6 +106,17 @@ public final class TemporalGraphHandler {
 		currentGraph = completeGraph.snapshot(new AsOf(currentTimestamp));
 	}
 	
+	/**
+	 * Deletes the edge between the specified pair of vertices.
+	 * @param graph The graph containing the pair of vertices.
+	 * @param vertex1 The id of the first vertex.
+	 * @param vertex2 The id of the second vertex.
+	 */
+	public void deleteEdgeBetween(GradoopId vertex1, GradoopId vertex2) {
+		completeGraph = Connectivity.deleteEdgeBetween(completeGraph, vertex1, vertex2);
+		currentGraph = completeGraph.snapshot(new AsOf(currentTimestamp));
+	}
+	
 	/** Updates the current graph to a snapshot of the complete graph at the next timestep.
 	 * The token transfer probability is then used determine which vertices without the token 
 	 * will receive it from a neighbour that does have it. 
