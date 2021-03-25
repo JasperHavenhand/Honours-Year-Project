@@ -98,6 +98,7 @@ public final class TemporalGraphHandler {
 	
 	/**
 	 * Set a limit on the temporality, i.e., the number of times an edge between two vertices can be active.
+	 * Edges will be randomly dropped to meet this new limit.
 	 * @param limit an integer value.
 	 */
 	public void limitTemporality(int limit) {

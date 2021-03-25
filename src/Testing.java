@@ -28,10 +28,11 @@ public class Testing {
 			TemporalGraphHandler handler = new TemporalGraphHandler(graph, "infected", 0.5, 60000L);			
 			
 			handler.limitTemporality(10);
-//			List<Triple<GradoopId, GradoopId, Long>> temps = handler.getTemporalities();
-//			for (Triple<GradoopId, GradoopId, Long> entry: temps) {
-//				System.out.println(entry.getLeft() + " " + entry.getMiddle() + " " + entry.getRight());
-//			}
+			List<Triple<GradoopId, GradoopId, Long>> temps = handler.getTemporalities();
+			for (Triple<GradoopId, GradoopId, Long> entry: temps) {
+				System.out.println(entry.getLeft() + " " + entry.getMiddle() + " " + entry.getRight());
+			}
+			System.out.println(handler.getCompleteGraph().getEdges().count());
 			
 			//handler.mergeEdges(1474113600000L, 600000L);
 			

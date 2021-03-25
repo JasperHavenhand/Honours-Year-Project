@@ -3,6 +3,7 @@ package graph.temporal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.stream.IntStream;
 
 import org.apache.commons.lang3.tuple.Triple;
 import org.apache.flink.api.common.functions.FilterFunction;
@@ -197,10 +198,11 @@ class Connectivity {
 	
 	/**
 	 * Limits the temporality of the given graph by grouping the edges by their target and source vertices,
-	 * and then randomly removing edges from each group until the groups all no larger than the specified limit.
-	 * @param graph
-	 * @param limit
-	 * @return
+	 * and then randomly selecting up to the specified number of edges (the limit) from each group until the groups are all no 
+	 * larger than the specified limit.
+	 * @param graph The TemporalGraph to operate on.
+	 * @param limit The maximum temporality of an edge between any two vertices.
+	 * @return The updated TemporalGraph.
 	 */
 	static TemporalGraph limitTemporality(TemporalGraph graph, int limit) {
 		try {
@@ -212,6 +214,7 @@ class Connectivity {
 			for (TemporalVertex v1: vertices) {
 				for (TemporalVertex v2: vertices) {
 					if (v1.getId().compareTo(v2.getId()) < 0) {
+						// Finding the edges that exist between the current pair of vertices.
 						List<TemporalEdge> filteredEdges = 
 								oldEdgeSet.filter(new FilterFunction<TemporalEdge>() {
 									private static final long serialVersionUID = -5742127640296074846L;
@@ -225,8 +228,25 @@ class Connectivity {
 									}
 								}).collect();
 						
-						//Select [limit] random numbers in range 0-(filteredEdges.size()-1) and get the edges at those positions.
-						newEdgeSet.addAll(filteredEdges);
+						if (filteredEdges.size() > limit) {
+							/*Selecting [limit] random integers in the inclusive range 0-(filteredEdges.size()-1) 
+							 * and getting the edges at those indexes.*/
+							List<Integer> rdmIndexes = new ArrayList<Integer>(limit);
+							while (rdmIndexes.size() < limit) {
+								int i = rdm.nextInt(limit);
+								if (!rdmIndexes.contains(i)) {
+									rdmIndexes.add(i);
+								}
+							}
+							List<TemporalEdge> selectedEdges = new ArrayList<TemporalEdge>();
+							for (int index: rdmIndexes) {
+								selectedEdges.add(filteredEdges.get(index));
+							}
+							newEdgeSet.addAll(selectedEdges);
+						} else {
+							// If the number of edges doesn't exceed the limit then none of them are dropped.
+							newEdgeSet.addAll(filteredEdges);
+						}
 					}	
 				}	
 			}
