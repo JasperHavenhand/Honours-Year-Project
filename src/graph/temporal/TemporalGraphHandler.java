@@ -71,9 +71,9 @@ public final class TemporalGraphHandler {
 	}
 
 	/**
-	 * @return Each vertex in the graph paired with a list of the vertices temporarily reachable from it.
+	 * @return The Id of each vertex in the graph paired with a list of the Ids of the vertices temporarily reachable from it.
 	 */
-	public List<Tuple2<TemporalVertex, List<TemporalVertex>>> getReachabilitySets() {
+	public List<Tuple2<GradoopId, List<GradoopId>>> getReachabilitySets() {
 		return Connectivity.reachabilitySetsOf(completeGraph);
 	}
 	

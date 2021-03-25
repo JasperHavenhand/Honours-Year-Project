@@ -6,6 +6,7 @@ import org.gradoop.common.model.impl.id.GradoopId;
 import org.gradoop.flink.model.impl.operators.statistics.ConnectedComponentsDistribution;
 import org.gradoop.temporal.io.impl.csv.TemporalCSVDataSource;
 import org.gradoop.temporal.model.impl.TemporalGraph;
+import org.gradoop.temporal.model.impl.TemporalGraphCollection;
 import org.gradoop.temporal.model.impl.pojo.TemporalEdge;
 import org.gradoop.temporal.model.impl.pojo.TemporalVertex;
 
@@ -26,28 +27,27 @@ public class Testing {
 			
 			TemporalGraph graph = data.getTemporalGraph();
 			TemporalGraphHandler handler = new TemporalGraphHandler(graph, "infected", 0.5, 60000L);			
-			
-			handler.limitTemporality(10);
-			List<Triple<GradoopId, GradoopId, Long>> temps = handler.getTemporalities();
-			for (Triple<GradoopId, GradoopId, Long> entry: temps) {
-				System.out.println(entry.getLeft() + " " + entry.getMiddle() + " " + entry.getRight());
-			}
+
+			handler.limitTemporality(1);
+//			List<Triple<GradoopId, GradoopId, Long>> temps = handler.getTemporalities();
+//			for (Triple<GradoopId, GradoopId, Long> entry: temps) {
+//				System.out.println(entry.getLeft() + " " + entry.getMiddle() + " " + entry.getRight());
+//			}
 			System.out.println(handler.getCompleteGraph().getEdges().count());
 			
+//			List<Tuple2<GradoopId, List<GradoopId>>> reachabilitySets = handler.getReachabilitySets();
+//			for (Tuple2<GradoopId, List<GradoopId>> set: reachabilitySets) {
+//				System.out.print(set.f0 + "-");
+//				for (GradoopId v: set.f1) {
+//					System.out.print(v + " ");
+//				}
+//				System.out.println();
+//			}
 			//handler.mergeEdges(1474113600000L, 600000L);
 			
 //			List<Triple<GradoopId, GradoopId, Long>> temporalities = handler.getTemporalities();
 //			for (Triple<GradoopId, GradoopId, Long> t: temporalities) {
 //				System.out.println(t.getLeft()+" "+t.getMiddle()+" "+t.getRight());
-//			}
-			
-//			List<Tuple2<TemporalVertex, List<TemporalVertex>>> reachabilitySets = handler.getReachabilitySets();
-//			for (Tuple2<TemporalVertex, List<TemporalVertex>> set: reachabilitySets) {
-//				System.out.print(set.f0.getPropertyValue("name") + "-");
-//				for (TemporalVertex v: set.f1) {
-//					System.out.print(v.getPropertyValue("name") +" ");
-//				}
-//				System.out.println();
 //			}
 			
 //			for (int i = 0; i < 60; i++) {

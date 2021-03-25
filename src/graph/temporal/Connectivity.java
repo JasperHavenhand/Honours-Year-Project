@@ -3,20 +3,14 @@ package graph.temporal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import java.util.stream.IntStream;
 
 import org.apache.commons.lang3.tuple.Triple;
 import org.apache.flink.api.common.functions.FilterFunction;
-import org.apache.flink.api.common.operators.Order;
 import org.apache.flink.api.java.DataSet;
-import org.apache.flink.api.java.ExecutionEnvironment;
-import org.apache.flink.api.java.operators.FilterOperator;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.gradoop.common.model.impl.id.GradoopId;
 import org.gradoop.flink.model.api.functions.TransformationFunction;
-import org.gradoop.flink.model.impl.operators.sampling.functions.RandomFilter;
 import org.gradoop.temporal.model.impl.TemporalGraph;
-import org.gradoop.temporal.model.impl.TemporalGraphCollection;
 import org.gradoop.temporal.model.impl.pojo.TemporalEdge;
 import org.gradoop.temporal.model.impl.pojo.TemporalVertex;
 
@@ -31,13 +25,13 @@ class Connectivity {
 	 * @param graph
 	 * @return Each vertex of the given graph, paired with a list of the vertices temporarily reachable from it.
 	 */
-	static List<Tuple2<TemporalVertex, List<TemporalVertex>>> reachabilitySetsOf(TemporalGraph graph) {
+	static List<Tuple2<GradoopId, List<GradoopId>>> reachabilitySetsOf(TemporalGraph graph) {
 		try {
-			List<Tuple2<TemporalVertex, List<TemporalVertex>>> sets = new ArrayList<Tuple2<TemporalVertex, List<TemporalVertex>>>();
+			List<Tuple2<GradoopId, List<GradoopId>>> sets = new ArrayList<Tuple2<GradoopId, List<GradoopId>>>();
 			List<TemporalVertex> vertices = graph.getVertices().collect();
 			for (TemporalVertex vertex: vertices) {
-				List<TemporalVertex> results = findReachableVertices(graph, vertex);
-				sets.add(new Tuple2<TemporalVertex, List<TemporalVertex>>(vertex,results));
+				List<GradoopId> results = findReachableVertices(graph, vertex.getId());
+				sets.add(new Tuple2<GradoopId, List<GradoopId>>(vertex.getId(),results));
 			}
 			return sets;
 		} catch (Exception e) {
@@ -47,45 +41,52 @@ class Connectivity {
 		}
 	}
 	
-	static List<TemporalVertex> findReachableVertices(TemporalGraph graph, TemporalVertex source) {
-		return findReachableVertices(graph, source, null, null);
+	static List<GradoopId> findReachableVertices(TemporalGraph graph, GradoopId source) {
+		List<GradoopId> visited = new ArrayList<GradoopId>();
+		visited.add(source);
+		return findReachableVertices(graph, source, visited, null);
 	}
 	
-	private static List<TemporalVertex> findReachableVertices(TemporalGraph graph, TemporalVertex source, 
-			List<TemporalVertex> visited, Long lastTime) {
+	private static List<GradoopId> findReachableVertices(
+			TemporalGraph graph, GradoopId source, List<GradoopId> visited, Long lastTime) {
 		try {
-			String query;
-			if (lastTime == null) {
-				query = "MATCH (v1)-[e]->(v2) WHERE v1.name = \""+source.getPropertyValue("name")+"\"";
-			} else {
-				query = "MATCH (v1)-[e]->(v2) WHERE v1.name = \""+source.getPropertyValue("name")+
-						"\" AND e.validFrom <= "+lastTime+" AND e.validTo >= "+lastTime;
-			}
-			if (visited == null) {
-				visited = new ArrayList<TemporalVertex>();
-			}
-			visited.add(source);
-			TemporalGraphCollection collection = graph.query(query);
-			List<TemporalVertex> vertices = collection.getVertices().collect();
-			vertices.remove(source);
-			List<TemporalEdge> edges = collection.getEdges().collect();
-
-			List<TemporalVertex> result = new ArrayList<TemporalVertex>();
-			result.add(source);
-			for (TemporalVertex v: vertices) {
-				if (!visited.contains(v)) {
-					Long newTime = null;
-					for (TemporalEdge e: edges) {
-						if (e.getSourceId() == source.getId() &&
-								e.getTargetId() == v.getId()) {
-							newTime = e.getValidFrom();
-							break;
-						}
+			// Find all edges connected the source vertex which are active at lastTime.
+			List<TemporalEdge> edges = graph.getEdges().filter(new FilterFunction<TemporalEdge>() {
+				private static final long serialVersionUID = -3946849681069559284L;
+				@Override
+				public boolean filter(TemporalEdge edge) throws Exception {
+					/* Edges are directed in Gradoop but are considered undirected in this usage
+					 * so both the source and target vertices have to be considered. */
+					Boolean b1 = edge.getSourceId().equals(source) ||
+							edge.getTargetId().equals(source);
+					Boolean b2 = true;
+					if (lastTime != null) {
+						b2 = edge.getValidFrom() < lastTime &&
+								edge.getValidTo() > lastTime;
 					}
-					result.addAll(findReachableVertices(graph,v,visited,newTime));
-				}	
+					return (b1 && b2);
+				}
+			}).collect();
+			
+			List<GradoopId> result = new ArrayList<GradoopId>();
+			result.add(source);
+			
+			// Recursive calls for each vertex which could possibly be visited next.
+			for (TemporalEdge edge: edges) {
+				List<GradoopId> newVisited = visited;
+				// Again, both the source and target vertices are considered.
+				if (!visited.contains(edge.getSourceId())) {
+					newVisited.add(edge.getSourceId());
+					result.addAll(findReachableVertices(graph, edge.getSourceId(), newVisited, edge.getValidTo()));
+				} 
+				else if (!visited.contains(edge.getTargetId())) {
+					newVisited.add(edge.getTargetId());
+					result.addAll(findReachableVertices(graph, edge.getTargetId(), newVisited, edge.getValidTo()));
+				}
 			}
+			
 			return result;
+			
 		} catch (Exception e) {
 			Log.getLog(LOG_NAME).writeException(e);
 			e.printStackTrace();
