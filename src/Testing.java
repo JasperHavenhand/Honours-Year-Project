@@ -27,14 +27,14 @@ public class Testing {
 			
 			TemporalGraph graph = data.getTemporalGraph();
 			TemporalGraphHandler handler = new TemporalGraphHandler(graph, "infected", 0.5, 60000L);			
-
+			
 //			handler.limitTemporality(1);
-			handler.deleteEdgeBetween(GradoopId.fromString("000000000000000000000000"), GradoopId.fromString("000000000000000000000001"));
-			List<Triple<GradoopId, GradoopId, Long>> temps = handler.getTemporalities();
-			for (Triple<GradoopId, GradoopId, Long> entry: temps) {
-				System.out.println(entry.getLeft() + " " + entry.getMiddle() + " " + entry.getRight());
-			}
-			System.out.println(handler.getCompleteGraph().getEdges().count());
+//			handler.deleteEdgeBetween(GradoopId.fromString("000000000000000000000000"), GradoopId.fromString("000000000000000000000001"));
+//			List<Triple<GradoopId, GradoopId, Long>> temps = handler.getTemporalities();
+//			for (Triple<GradoopId, GradoopId, Long> entry: temps) {
+//				System.out.println(entry.getLeft() + " " + entry.getMiddle() + " " + entry.getRight());
+//			}
+//			System.out.println(handler.getCompleteGraph().getEdges().count());
 			
 //			List<Tuple2<GradoopId, List<GradoopId>>> reachabilitySets = handler.getReachabilitySets();
 //			for (Tuple2<GradoopId, List<GradoopId>> set: reachabilitySets) {
@@ -51,7 +51,7 @@ public class Testing {
 //				System.out.println(t.getLeft()+" "+t.getMiddle()+" "+t.getRight());
 //			}
 			
-//			for (int i = 0; i < 60; i++) {
+//			for (int i = 0; i < 10; i++) {
 //				System.out.println("timestep " + i);
 //				handler.nextTimeStep();
 //			}

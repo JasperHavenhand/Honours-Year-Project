@@ -57,6 +57,7 @@ public final class Configuration {
 		try {
 			properties.setProperty("dataFolder", System.getProperty("user.dir")+ File.separator + "data");
 			properties.setProperty("logsFolder", System.getProperty("user.dir")+ File.separator + "logs");
+			properties.setProperty("tokensFile", System.getProperty("user.dir")+ File.separator + "tokens");
 			saveConfiguration();
 		} catch (Exception e) {
 			Log.getLog(LOG_NAME).writeException(e);
