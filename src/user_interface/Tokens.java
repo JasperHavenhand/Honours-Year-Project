@@ -61,7 +61,7 @@ final class Tokens {
 	/**
 	 * Retrieves the token with the specified name.
 	 * @param name The name of the token to fetch.
-	 * @return The transfer probability of the requested property or null if it doesn't exist.
+	 * @return The transfer probability of the requested token or null if it doesn't exist.
 	 */
 	Double get(String name) {
 		try {
@@ -94,7 +94,7 @@ final class Tokens {
 	/**
 	 * Creates or updates the specified token with the specified transfer probability.
 	 * @param name The name of the token.
-	 * @param value The transfer probability corresponding to the name.
+	 * @param transferProb The transfer probability corresponding to the name.
 	 */
 	void set(String name, Double transferProb) {
 		try {
