@@ -12,21 +12,25 @@ import org.gradoop.temporal.model.impl.pojo.TemporalVertex;
 
 import data.temporal.TemporalDataFactory;
 import graph.temporal.TemporalGraphHandler;
+import user_interface.EpidemicSimulator;
 import utilities.Log;
 
 public class Testing {
 	
 	public static void main (String[] args) {
 		try {
+			
+			EpidemicSimulator sim = new EpidemicSimulator();
+			
 //			TemporalCSVDataSource data = TemporalDataFactory.createCSVDataSource(
 //				"C:\\Users\\Student\\Documents\\Fourth Year\\COMP390 - Honours Year Project\\NSense_Traces_Set2_CRAWDAD",
 //				inputType.NSENSE,"NSense_test");
 			
-			TemporalCSVDataSource data = TemporalDataFactory
-					.loadCSVDataSource("C:\\Users\\Student\\eclipse-workspace\\Honours-Year-Project\\data\\NSense_test");
-			
-			TemporalGraph graph = data.getTemporalGraph();
-			TemporalGraphHandler handler = new TemporalGraphHandler(graph, "infected", 0.5, 60000L);			
+//			TemporalCSVDataSource data = TemporalDataFactory
+//					.loadCSVDataSource("C:\\Users\\Student\\eclipse-workspace\\Honours-Year-Project\\data\\NSense_test");
+//			
+//			TemporalGraph graph = data.getTemporalGraph();
+//			TemporalGraphHandler handler = new TemporalGraphHandler(graph, "infected", 0.5, 60000L);			
 			
 //			handler.limitTemporality(1);
 //			handler.deleteEdgeBetween(GradoopId.fromString("000000000000000000000000"), GradoopId.fromString("000000000000000000000001"));
