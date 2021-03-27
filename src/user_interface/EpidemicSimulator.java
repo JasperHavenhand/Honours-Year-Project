@@ -2,11 +2,14 @@ package user_interface;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.GridLayout;
+import java.awt.Insets;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTextField;
 
 import graph.temporal.TemporalGraphHandler;
 
@@ -33,7 +36,7 @@ public final class EpidemicSimulator extends JFrame {
 	
 	private void createBtnsPanel() {
 		JPanel btnsPanel = new JPanel();
-		btnsPanel.setLayout(new GridBagLayout());
+		btnsPanel.setLayout(new GridLayout(2,1,10,10));
 		
 		JButton newGraphBtn = new JButton("Create new graph");
 		btnsPanel.add(newGraphBtn);
@@ -45,16 +48,16 @@ public final class EpidemicSimulator extends JFrame {
 		gbc.fill = GridBagConstraints.VERTICAL;
 		gbc.gridx = 0;
 		gbc.gridy = 0;
+		gbc.insets = new Insets(0,5,0,0);
 		add(btnsPanel,gbc);
 	}
 	
 	private void createGraphPanel() {
 		graphPanel = new GraphPanel();
 		
-		
-		
 		GridBagConstraints gbc = new GridBagConstraints(); 
 		gbc.fill = GridBagConstraints.VERTICAL;
+		gbc.weightx = 1.0;
 		gbc.gridx = 1;
 		gbc.gridy = 0;
 		add(graphPanel,gbc);
@@ -62,56 +65,63 @@ public final class EpidemicSimulator extends JFrame {
 	
 	private void createConstraintsPanel() {
 		JPanel constraintsPanel = new JPanel();
-		constraintsPanel.setLayout(new GridBagLayout());
+		constraintsPanel.setLayout(new GridLayout(4,4,10,10));
 		
-		GridBagConstraints labelGbc = new GridBagConstraints();
-		
+		// Merge
 		JLabel mergeLabel = new JLabel("Merge edges:");
-		labelGbc.gridx = 0;
-		labelGbc.gridy = 1;
-		constraintsPanel.add(mergeLabel, labelGbc);
+		constraintsPanel.add(mergeLabel);
 		
-		JLabel delayLabel = new JLabel("Delay edges:");
-		labelGbc.gridx = 0;
-		labelGbc.gridy = 2;
-		constraintsPanel.add(delayLabel, labelGbc);
+		JTextField mergeStart = new JTextField();
+		constraintsPanel.add(mergeStart);
 		
-		JLabel limitLabel = new JLabel("Set temporality limit:");
-		labelGbc.gridx = 0;
-		labelGbc.gridy = 3;
-		constraintsPanel.add(limitLabel, labelGbc);
-		
-		JLabel deleteLabel = new JLabel("Delete edge between:");
-		labelGbc.gridx = 0;
-		labelGbc.gridy = 4;
-		constraintsPanel.add(deleteLabel, labelGbc);
-		
-		GridBagConstraints applyGbc = new GridBagConstraints();
+		JTextField mergeDuration = new JTextField();
+		constraintsPanel.add(mergeDuration);
 		
 		JButton applyMerge = new JButton("Apply");
-		applyGbc.gridx = 3;
-		applyGbc.gridy = 1;
-		constraintsPanel.add(applyMerge,applyGbc);
+		constraintsPanel.add(applyMerge);
+		
+		// Delay
+		JLabel delayLabel = new JLabel("Delay edges:");
+		constraintsPanel.add(delayLabel);
+		
+		JTextField delayTime = new JTextField();
+		constraintsPanel.add(delayTime);
+		
+		constraintsPanel.add(new JPanel());
 		
 		JButton applyDelay = new JButton("Apply");
-		applyGbc.gridx = 3;
-		applyGbc.gridy = 2;
-		constraintsPanel.add(applyDelay,applyGbc);
+		constraintsPanel.add(applyDelay);
+		
+		// Temporality Limit
+		JLabel limitLabel = new JLabel("Set temporality limit:");
+		constraintsPanel.add(limitLabel);
+		
+		JTextField limit = new JTextField();
+		constraintsPanel.add(limit);
+		
+		constraintsPanel.add(new JPanel());
 		
 		JButton applyLimit = new JButton("Apply");
-		applyGbc.gridx = 3;
-		applyGbc.gridy = 3;
-		constraintsPanel.add(applyLimit,applyGbc);
+		constraintsPanel.add(applyLimit);
+		
+		// Delete Edge
+		JLabel deleteLabel = new JLabel("Delete edge between:");
+		constraintsPanel.add(deleteLabel);
+		
+		JTextField vertex1 = new JTextField();
+		constraintsPanel.add(vertex1);
+		
+		JTextField vertex2 = new JTextField();
+		constraintsPanel.add(vertex2);
 		
 		JButton applyDelete = new JButton("Apply");
-		applyGbc.gridx = 3;
-		applyGbc.gridy = 4;
-		constraintsPanel.add(applyDelete,applyGbc);
+		constraintsPanel.add(applyDelete);
 		
 		GridBagConstraints gbc = new GridBagConstraints(); 
 		gbc.fill = GridBagConstraints.VERTICAL;
 		gbc.gridx = 2;
 		gbc.gridy = 0;
+		gbc.insets = new Insets(0,0,0,5);
 		add(constraintsPanel,gbc);
 	}
 }
