@@ -4,6 +4,8 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -39,9 +41,11 @@ public final class EpidemicSimulator extends JFrame {
 		btnsPanel.setLayout(new GridLayout(2,1,10,10));
 		
 		JButton newGraphBtn = new JButton("Create new graph");
+		newGraphBtn.addActionListener(new ButtonListener("newGraphBtn"));
 		btnsPanel.add(newGraphBtn);
 		
 		JButton nextStepBtn = new JButton("Next timestep");
+		nextStepBtn.addActionListener(new ButtonListener("nextStepBtn"));
 		btnsPanel.add(nextStepBtn);
 		
 		GridBagConstraints gbc = new GridBagConstraints(); 
@@ -78,6 +82,7 @@ public final class EpidemicSimulator extends JFrame {
 		constraintsPanel.add(mergeDuration);
 		
 		JButton applyMerge = new JButton("Apply");
+		applyMerge.addActionListener(new ButtonListener("applyMerge"));
 		constraintsPanel.add(applyMerge);
 		
 		// Delay
@@ -90,6 +95,7 @@ public final class EpidemicSimulator extends JFrame {
 		constraintsPanel.add(new JPanel());
 		
 		JButton applyDelay = new JButton("Apply");
+		applyDelay.addActionListener(new ButtonListener("applyDelay"));
 		constraintsPanel.add(applyDelay);
 		
 		// Temporality Limit
@@ -102,6 +108,7 @@ public final class EpidemicSimulator extends JFrame {
 		constraintsPanel.add(new JPanel());
 		
 		JButton applyLimit = new JButton("Apply");
+		applyLimit.addActionListener(new ButtonListener("applyLimit"));
 		constraintsPanel.add(applyLimit);
 		
 		// Delete Edge
@@ -115,6 +122,7 @@ public final class EpidemicSimulator extends JFrame {
 		constraintsPanel.add(vertex2);
 		
 		JButton applyDelete = new JButton("Apply");
+		applyDelete.addActionListener(new ButtonListener("applyDelete"));
 		constraintsPanel.add(applyDelete);
 		
 		GridBagConstraints gbc = new GridBagConstraints(); 
@@ -123,5 +131,32 @@ public final class EpidemicSimulator extends JFrame {
 		gbc.gridy = 0;
 		gbc.insets = new Insets(0,0,0,5);
 		add(constraintsPanel,gbc);
+	}
+
+	private class ButtonListener implements ActionListener{
+		private String buttonName;
+		
+		ButtonListener(String buttonName) {
+			this.buttonName = buttonName;
+		}
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			switch (buttonName) {
+				case "newGraphBtn":
+					break;
+				case "nextStepBtn":
+					break;
+				case "applyMerge":
+					break;
+				case "applyDelay":
+					break;
+				case "applyLimit":
+					break;
+				case "applyDelete":
+					break;
+			}
+		}
+		
 	}
 }

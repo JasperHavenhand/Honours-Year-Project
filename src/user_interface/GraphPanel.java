@@ -37,7 +37,7 @@ final class GraphPanel extends JPanel {
 	}
 	
 	void updateVirus(String virusName) {
-		virusLabel.setText(virusName);
+		virusLabel.setText("Virus: "+virusName);
 	}
 	
 	void updateVertices(String[][] vertices) {
