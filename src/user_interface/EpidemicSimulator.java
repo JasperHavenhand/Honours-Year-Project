@@ -11,6 +11,7 @@ import java.util.List;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -18,7 +19,10 @@ import javax.swing.JTextField;
 
 import org.apache.flink.api.java.tuple.Tuple2;
 
+import data.temporal.TemporalDataFactory;
+import data.temporal.TemporalDataFactory.inputType;
 import graph.temporal.TemporalGraphHandler;
+import utilities.Log;
 
 public final class EpidemicSimulator extends JFrame {
 
@@ -32,7 +36,14 @@ public final class EpidemicSimulator extends JFrame {
 	private JComboBox<String> newGraphVirus;
 	private JTextField newGraphIncrement;
 	
-	// Initialising the simulator.
+	private JDialog newSourceDialog;
+	private JTextField newSourceName;
+	private JTextField newSourcePath;
+	private JComboBox<String> newSourceInputType;
+	
+	private static String LOG_NAME = "general_log";
+	
+	// --- Initialising the Simulator ---
 	public EpidemicSimulator() {
 		setLayout(new GridBagLayout());
 		setTitle("Epidemic Simulator");
@@ -90,9 +101,9 @@ public final class EpidemicSimulator extends JFrame {
 		JTextField mergeDuration = new JTextField();
 		constraintsPanel.add(mergeDuration);
 		
-		JButton applyMerge = new JButton("Apply");
-		applyMerge.addActionListener(new ButtonListener("applyMerge"));
-		constraintsPanel.add(applyMerge);
+		JButton applyMergeBtn = new JButton("Apply");
+		applyMergeBtn.addActionListener(new ButtonListener("applyMergeBtn"));
+		constraintsPanel.add(applyMergeBtn);
 		
 		// Delay
 		JLabel delayLabel = new JLabel("Delay edges:");
@@ -103,9 +114,9 @@ public final class EpidemicSimulator extends JFrame {
 		
 		constraintsPanel.add(new JPanel());
 		
-		JButton applyDelay = new JButton("Apply");
-		applyDelay.addActionListener(new ButtonListener("applyDelay"));
-		constraintsPanel.add(applyDelay);
+		JButton applyDelayBtn = new JButton("Apply");
+		applyDelayBtn.addActionListener(new ButtonListener("applyDelayBtn"));
+		constraintsPanel.add(applyDelayBtn);
 		
 		// Temporality Limit
 		JLabel limitLabel = new JLabel("Set temporality limit:");
@@ -116,9 +127,9 @@ public final class EpidemicSimulator extends JFrame {
 		
 		constraintsPanel.add(new JPanel());
 		
-		JButton applyLimit = new JButton("Apply");
-		applyLimit.addActionListener(new ButtonListener("applyLimit"));
-		constraintsPanel.add(applyLimit);
+		JButton applyLimitBtn = new JButton("Apply");
+		applyLimitBtn.addActionListener(new ButtonListener("applyLimitBtn"));
+		constraintsPanel.add(applyLimitBtn);
 		
 		// Delete Edge
 		JLabel deleteLabel = new JLabel("Delete edge between:");
@@ -130,9 +141,9 @@ public final class EpidemicSimulator extends JFrame {
 		JTextField vertex2 = new JTextField();
 		constraintsPanel.add(vertex2);
 		
-		JButton applyDelete = new JButton("Apply");
-		applyDelete.addActionListener(new ButtonListener("applyDelete"));
-		constraintsPanel.add(applyDelete);
+		JButton applyDeleteBtn = new JButton("Apply");
+		applyDeleteBtn.addActionListener(new ButtonListener("applyDeleteBtn"));
+		constraintsPanel.add(applyDeleteBtn);
 		
 		GridBagConstraints gbc = new GridBagConstraints(); 
 		gbc.fill = GridBagConstraints.VERTICAL;
@@ -142,24 +153,38 @@ public final class EpidemicSimulator extends JFrame {
 		add(constraintsPanel,gbc);
 	}
 	
+	// --- The New Graph Dialog ---
 	private void showNewGraphDialog() {
 		if (newGraphDialog == null) {
 			newGraphDialog = new JDialog(this, "Create a New Graph", true);
-			newGraphDialog.setLayout(new GridLayout(4,3));
+			newGraphDialog.setLayout(new GridLayout(4,3,5,5));
 			
 			newGraphDialog.add(new JLabel("Select Data Source:"));
 			refreshNewGraphSource();
 			newGraphDialog.add(newGraphSource);
+			JButton newSourceBtn = new JButton("Create New");
+			newSourceBtn.addActionListener(new ButtonListener("newSourceBtn"));
+			newGraphDialog.add(newSourceBtn);
 			
 			newGraphDialog.add(new JLabel("Select Virus:"));
 			refreshNewGraphVirus();
 			newGraphDialog.add(newGraphVirus);
+			JButton newVirusBtn = new JButton("Create New");
+			newVirusBtn.addActionListener(new ButtonListener("newVirusBtn"));
+			newGraphDialog.add(newVirusBtn);
 			
 			newGraphDialog.add(new JLabel("Set increment between timesteps (in milliseconds):"));
 			newGraphIncrement = new JTextField();
 			newGraphDialog.add(newGraphIncrement);
 			
+			newGraphDialog.add(new JPanel());
+			newGraphDialog.add(new JPanel());
+			newGraphDialog.add(new JPanel());
 			
+			JButton createGraphBtn = new JButton("Create Graph");
+			createGraphBtn.addActionListener(new ButtonListener("createGraphBtn"));
+			newGraphDialog.add(createGraphBtn);
+			newGraphDialog.pack();
 		}
 		newGraphDialog.setVisible(true);
 	}
@@ -181,7 +206,97 @@ public final class EpidemicSimulator extends JFrame {
 		}
 		newGraphVirus = new JComboBox<String>(virusNames);
 	}
+	
+	private void loadNewGraph() {
+		try {
+			String dataSourceName = (String) newGraphSource.getSelectedItem();
+			String dataSourcePath = DataSources.getInstance().get(dataSourceName);
+			String virusName = (String) newGraphVirus.getSelectedItem();
+			Double virusProb = Tokens.getInstance().get(virusName);
+			Long timeIncrement = Long.parseLong(newGraphIncrement.getText());
+			
+			tgh = new TemporalGraphHandler(
+					TemporalDataFactory.loadCSVDataSource(dataSourcePath).getTemporalGraph(),
+					virusName,virusProb,timeIncrement);
+			newGraphDialog.setVisible(false);
+		} catch (NumberFormatException nfe) {
+			// Highlight that the time increment value is invalid.
+		} catch (Exception e) {
+			Log.getLog(LOG_NAME).writeException(e);
+			e.printStackTrace();
+		}
+	}
 
+	// --- The New Data Source Dialog ---
+	private void showNewSourceDialog() {
+		if (newSourceDialog == null) {
+			newSourceDialog = new JDialog(this, "Create a New Data Source", true);
+			newSourceDialog.setLayout(new GridLayout(4,3,5,5));
+			
+			newSourceDialog.add(new JLabel("Name:"));
+			newSourceName = new JTextField();
+			newSourceDialog.add(newSourceName);
+			
+			newSourceDialog.add(new JPanel());
+			
+			newSourceDialog.add(new JLabel("Input Data Location"));
+			newSourcePath = new JTextField();
+			newSourceDialog.add(newSourcePath);
+			JButton newSourcePathBtn = new JButton("Search");
+			newSourcePathBtn.addActionListener(new ButtonListener("newSourcePathBtn"));
+			newSourceDialog.add(newSourcePathBtn);
+			
+			newSourceDialog.add(new JLabel("Input Type:"));
+			inputType[] inputTypes = TemporalDataFactory.inputType.values();
+			String[] inputTypeNames = new String[inputTypes.length];
+			for (int i = 0; i < inputTypes.length; i++) {
+				inputTypeNames[i] = inputTypes[i].toString();
+			}
+			newSourceInputType = new JComboBox<String>(inputTypeNames);
+			
+			newSourceDialog.add(new JPanel());
+			newSourceDialog.add(new JPanel());
+			newSourceDialog.add(new JPanel());
+			
+			JButton createSourceBtn = new JButton("Create Data Source");
+			createSourceBtn.addActionListener(new ButtonListener("createSourceBtn"));
+			newSourceDialog.add(createSourceBtn);
+			
+			newSourceDialog.pack();
+		}
+		newSourceDialog.setVisible(true);
+	}
+	
+	private void sourcePathChooser() {
+	    JFileChooser fc = new JFileChooser();
+	    fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+	    fc.setAcceptAllFileFilterUsed(false);
+	    if (fc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+	    	newSourcePath.setText(fc.getSelectedFile().getPath());
+	    }
+	}
+	
+	private void createNewSource() {
+		try {
+			String inputPath = newSourcePath.getText();
+			inputType inputType = data.temporal.TemporalDataFactory.inputType.valueOf((String) newSourceInputType.getSelectedItem());
+			String sourceName = newSourceName.getText();
+			TemporalDataFactory.createCSVDataSource(inputPath, inputType, sourceName);
+		} catch (Exception e) {
+			Log.getLog(LOG_NAME).writeException(e);
+			e.printStackTrace();
+		}
+	}
+	
+	// -- The New Virus Dialog ---
+	private void showNewVirusDialog() {
+		
+	}
+	
+	private void createNewVirus() {
+		
+	}
+	
 	private class ButtonListener implements ActionListener {
 		private String buttonName;
 		
@@ -192,31 +307,45 @@ public final class EpidemicSimulator extends JFrame {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			switch (buttonName) {
-				case "newGraphBtn":
-					// Open new graph dialogue.
-					showNewGraphDialog();
-					break;
 				case "nextStepBtn":
-					tgh.nextTimeStep();
-					timestep ++;
-					graphPanel.updateTime(timestep);
-					// Update graph panel.
+					if (tgh.nextTimeStep()) {
+						timestep ++;
+						graphPanel.updateTime(timestep);
+					}
 					break;
-				case "applyMerge":
+				case "applyMergeBtn":
 //					tgh.mergeEdges(startTime, duration);
 					// Update graph panel?
 					break;
-				case "applyDelay":
+				case "applyDelayBtn":
 //					tgh.delayEdges(time);
 					// Update graph panel?
 					break;
-				case "applyLimit":
+				case "applyLimitBtn":
 //					tgh.limitTemporality(limit);
 					// Update graph panel?
 					break;
-				case "applyDelete":
+				case "applyDeleteBtn":
 //					tgh.delayEdges(time);
 					// Update graph panel?
+					break;
+				case "newGraphBtn":
+					showNewGraphDialog();
+					break;
+				case "createGraphBtn":
+					loadNewGraph();
+					break;
+				case "newSourceBtn":
+					showNewSourceDialog();
+					break;
+				case "newSourcePathBtn":
+					sourcePathChooser();
+					break;
+				case "createSourceBtn":
+					createNewSource();
+					break;
+				case "newVirusBtn":
+					showNewVirusDialog();
 					break;
 			}
 		}
