@@ -74,7 +74,8 @@ final class Tokens {
 	}
 	
 	/**
-	 * @return A list of all the token names paired with their transfer probabilities.
+	 * @return A list of all the token names paired with their transfer probabilities
+	 *  in the format (name,probability).
 	 */
 	List<Tuple2<String,Double>> getAll() {
 		try {

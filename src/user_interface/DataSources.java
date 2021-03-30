@@ -57,7 +57,8 @@ final class DataSources {
 	}
 	
 	/**
-	 * @return A list of all the data source names paired with their absolute paths.
+	 * @return A list of all the data source names paired with their absolute paths
+	 *  in the format (name,path).
 	 */
 	List<Tuple2<String,String>> getAll() {
 		try {
