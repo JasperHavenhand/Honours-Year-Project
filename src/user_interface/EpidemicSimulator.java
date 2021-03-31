@@ -6,8 +6,11 @@ import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 import java.util.List;
 
+import javax.swing.ComboBoxModel;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
@@ -18,6 +21,7 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import org.apache.flink.api.java.tuple.Tuple2;
+import org.gradoop.temporal.model.impl.pojo.TemporalVertex;
 
 import data.temporal.TemporalDataFactory;
 import data.temporal.TemporalDataFactory.inputType;
@@ -40,6 +44,10 @@ public final class EpidemicSimulator extends JFrame {
 	private JTextField newSourceName;
 	private JTextField newSourcePath;
 	private JComboBox<String> newSourceInputType;
+	
+	private JDialog newVirusDialog;
+	private JTextField newVirusName;
+	private JTextField newVirusProb;
 	
 	private static String LOG_NAME = "general_log";
 	
@@ -190,21 +198,33 @@ public final class EpidemicSimulator extends JFrame {
 	}
 	
 	private void refreshNewGraphSource() {
-		List<Tuple2<String, String>> sources = DataSources.getInstance().getAll();
-		String[] sourceNames = new String[sources.size()];
-		for (int i = 0; i < sources.size(); i++) {
-			sourceNames[i] = sources.get(i).f0; 
+		if (newGraphSource == null) {
+			newGraphSource = new JComboBox<String>();
 		}
-		newGraphSource = new JComboBox<String>(sourceNames);
+		List<Tuple2<String, String>> sources = DataSources.getInstance().getAll();
+		List<String> sourceNames = new ArrayList<String>();
+		DefaultComboBoxModel<String> model = (DefaultComboBoxModel<String>) newGraphSource.getModel();
+		model.removeAllElements();
+		for (int i = 0; i < sources.size(); i++) {
+			sourceNames.add(sources.get(i).f0); 
+		}
+		model.addAll(sourceNames);
+		newGraphSource.setModel(model);
 	}
 	
 	private void refreshNewGraphVirus() {
-		List<Tuple2<String, Double>> viruses = Tokens.getInstance().getAll();
-		String[] virusNames = new String[viruses.size()];
-		for (int i = 0; i < viruses.size(); i++) {
-			virusNames[i] = viruses.get(i).f0;
+		if (newGraphVirus == null) {
+			newGraphVirus = new JComboBox<String>();
 		}
-		newGraphVirus = new JComboBox<String>(virusNames);
+		List<Tuple2<String, Double>> viruses = Tokens.getInstance().getAll();
+		DefaultComboBoxModel<String> model = (DefaultComboBoxModel<String>) newGraphVirus.getModel();
+		model.removeAllElements();
+		List<String> virusNames = new ArrayList<String>();
+		for (int i = 0; i < viruses.size(); i++) {
+			virusNames.add(viruses.get(i).f0);
+		}
+		model.addAll(virusNames);
+		newGraphVirus.setModel(model);
 	}
 	
 	private void loadNewGraph() {
@@ -219,6 +239,20 @@ public final class EpidemicSimulator extends JFrame {
 					TemporalDataFactory.loadCSVDataSource(dataSourcePath).getTemporalGraph(),
 					virusName,virusProb,timeIncrement);
 			newGraphDialog.setVisible(false);
+			
+			graphPanel.updateVirus(virusName);
+			
+			timestep = 0;
+			graphPanel.updateTime(timestep);
+			
+			List<TemporalVertex> vertices = tgh.getCompleteGraph().getVertices().collect();
+			String[][] filteredVertices = new String[vertices.size()][];
+			for (int i = 0; i < vertices.size(); i++) {
+				String[] vertex = {vertices.get(i).getPropertyValue("name").getString(),
+				vertices.get(i).getPropertyValue("infected").toString()};
+				filteredVertices[i] = vertex;
+			}
+			graphPanel.updateVertices(filteredVertices);
 		} catch (NumberFormatException nfe) {
 			// Highlight that the time increment value is invalid.
 		} catch (Exception e) {
@@ -253,6 +287,7 @@ public final class EpidemicSimulator extends JFrame {
 				inputTypeNames[i] = inputTypes[i].toString();
 			}
 			newSourceInputType = new JComboBox<String>(inputTypeNames);
+			newSourceDialog.add(newSourceInputType);
 			
 			newSourceDialog.add(new JPanel());
 			newSourceDialog.add(new JPanel());
@@ -281,20 +316,65 @@ public final class EpidemicSimulator extends JFrame {
 			String inputPath = newSourcePath.getText();
 			inputType inputType = data.temporal.TemporalDataFactory.inputType.valueOf((String) newSourceInputType.getSelectedItem());
 			String sourceName = newSourceName.getText();
-			TemporalDataFactory.createCSVDataSource(inputPath, inputType, sourceName);
+			if (TemporalDataFactory.createCSVDataSource(inputPath, inputType, sourceName) == null) {
+				//highlight that inputPath is invalid.
+			} else {
+				newSourceDialog.setVisible(false);
+				newSourceName.setText("");
+				newSourcePath.setText("");
+				refreshNewGraphSource();
+				newGraphSource.setSelectedItem(sourceName);
+			}
 		} catch (Exception e) {
 			Log.getLog(LOG_NAME).writeException(e);
 			e.printStackTrace();
 		}
 	}
 	
-	// -- The New Virus Dialog ---
+	// --- The New Virus Dialog ---
 	private void showNewVirusDialog() {
-		
+		if (newVirusDialog == null) {
+			newVirusDialog = new JDialog(this, "Create a New Virus", true);
+			newVirusDialog.setLayout(new GridLayout(3,2,5,5));
+			
+			newVirusDialog.add(new JLabel("Name:"));
+			newVirusName = new JTextField();
+			newVirusDialog.add(newVirusName);
+			
+			newVirusDialog.add(new JLabel("Transfer Probability:"));
+			newVirusProb = new JTextField();
+			newVirusDialog.add(newVirusProb);
+			
+			newVirusDialog.add(new JPanel());
+			
+			JButton createVirusBtn = new JButton("Create Virus");
+			createVirusBtn.addActionListener(new ButtonListener("createVirusBtn"));
+			newVirusDialog.add(createVirusBtn);
+			
+			newVirusDialog.pack();
+		}
+		newVirusDialog.setVisible(true);
 	}
 	
 	private void createNewVirus() {
-		
+		try {
+			Double prob = Double.valueOf(newVirusProb.getText());
+			if (prob < 0.0 || prob > 1.0) {
+				//must be in the range 0.0 to 1.0
+			}
+			String name = newVirusName.getText();
+			Tokens.getInstance().set(name, prob);
+			newVirusDialog.setVisible(false);
+			newVirusName.setText("");
+			newVirusProb.setText("");
+			refreshNewGraphVirus();
+			newGraphVirus.setSelectedItem(name);
+		} catch (NumberFormatException nfe) {
+			// highlight that the probability must be a number
+		} catch (Exception e) {
+			Log.getLog(LOG_NAME).writeException(e);
+			e.printStackTrace();
+		}
 	}
 	
 	private class ButtonListener implements ActionListener {
@@ -346,6 +426,9 @@ public final class EpidemicSimulator extends JFrame {
 					break;
 				case "newVirusBtn":
 					showNewVirusDialog();
+					break;
+				case "createVirusBtn":
+					createNewVirus();
 					break;
 			}
 		}

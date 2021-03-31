@@ -12,22 +12,25 @@ import javax.swing.table.DefaultTableModel;
 final class GraphPanel extends JPanel {
 	private static final long serialVersionUID = -7655972769282670993L;
 	
-	private JLabel timestepLabel;
-	private JLabel virusLabel;
+	private JLabel timestepLabel, virusNameLabel, virusProbLabel;
 	private JTable verticesTable;
 	
 	GraphPanel() {
-		setLayout(new GridLayout(3,1,10,10));
+		setLayout(new GridLayout(4,1,10,10));
 		timestepLabel = new JLabel("Timestep ");
 		add(timestepLabel);
 		
-		virusLabel = new JLabel("Virus: ");
-		add(virusLabel);
+		virusNameLabel = new JLabel("Virus Name: ");
+		add(virusNameLabel);
+		virusProbLabel = new JLabel("Probability of Transmission: ");
+		add(virusProbLabel);
 		
 		String data[][] = {};
 		String column[] = {"vertex","Infected?"};
 		verticesTable = new JTable(data,column);
-		JScrollPane scrollPane = new JScrollPane(verticesTable);
+		verticesTable.setModel(new DefaultTableModel(data,column));
+		JScrollPane scrollPane = new JScrollPane();
+		scrollPane.getViewport().add(verticesTable);
 		scrollPane.setBorder(new EmptyBorder(0, 0, 0, 0));
 		add(scrollPane);
 	}
@@ -37,7 +40,8 @@ final class GraphPanel extends JPanel {
 	}
 	
 	void updateVirus(String virusName) {
-		virusLabel.setText("Virus: "+virusName);
+		virusNameLabel.setText("Virus Name: " + virusName);
+		virusProbLabel.setText("Probability of Transmission: " + Tokens.getInstance().get(virusName));
 	}
 	
 	void updateVertices(String[][] vertices) {
