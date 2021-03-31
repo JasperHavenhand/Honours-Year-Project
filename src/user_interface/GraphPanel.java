@@ -1,7 +1,12 @@
 package user_interface;
 
+import java.awt.Color;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.GridLayout;
+import java.awt.Insets;
 
+import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -14,25 +19,42 @@ final class GraphPanel extends JPanel {
 	
 	private JLabel timestepLabel, virusNameLabel, virusProbLabel;
 	private JTable verticesTable;
+	private JScrollPane verticesSPane;
 	
 	GraphPanel() {
-		setLayout(new GridLayout(4,1,10,10));
+		setBorder(BorderFactory.createLineBorder(Color.BLACK));
+		setLayout(new GridBagLayout());
+		
+		GridBagConstraints gbc = new GridBagConstraints();
+		gbc.gridx = 0;
+		
 		timestepLabel = new JLabel("Timestep ");
-		add(timestepLabel);
+		gbc.gridy = 0;
+		add(timestepLabel,gbc);
 		
 		virusNameLabel = new JLabel("Virus Name: ");
-		add(virusNameLabel);
+		gbc.gridy = 1;
+		add(virusNameLabel,gbc);
 		virusProbLabel = new JLabel("Probability of Transmission: ");
-		add(virusProbLabel);
+		gbc.gridy = 2;
+		add(virusProbLabel,gbc);
 		
 		String data[][] = {};
-		String column[] = {"vertex","Infected?"};
+		String column[] = {"vertex","Infected"};
 		verticesTable = new JTable(data,column);
-		verticesTable.setModel(new DefaultTableModel(data,column));
-		JScrollPane scrollPane = new JScrollPane();
-		scrollPane.getViewport().add(verticesTable);
-		scrollPane.setBorder(new EmptyBorder(0, 0, 0, 0));
-		add(scrollPane);
+		verticesTable.getTableHeader().setReorderingAllowed(false);
+		verticesTable.setModel(new DefaultTableModel(data,column){
+			private static final long serialVersionUID = 9110253115726752997L;
+			@Override
+		    public boolean isCellEditable(int row, int column) {
+		       return false;
+		    }
+		});
+		verticesSPane = new JScrollPane(verticesTable);
+		verticesSPane.setBorder(new EmptyBorder(0, 0, 0, 0));
+		gbc.gridy = 3;
+		gbc.fill = GridBagConstraints.BOTH;
+		add(verticesSPane,gbc);
 	}
 	
 	void updateTime(int timestep) {

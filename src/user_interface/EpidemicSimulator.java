@@ -9,7 +9,6 @@ import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -76,8 +75,7 @@ public final class EpidemicSimulator extends JFrame {
 		nextStepBtn.addActionListener(new ButtonListener("nextStepBtn"));
 		btnsPanel.add(nextStepBtn);
 		
-		GridBagConstraints gbc = new GridBagConstraints(); 
-		gbc.fill = GridBagConstraints.VERTICAL;
+		GridBagConstraints gbc = new GridBagConstraints();
 		gbc.gridx = 0;
 		gbc.gridy = 0;
 		gbc.insets = new Insets(0,5,0,0);
@@ -88,7 +86,7 @@ public final class EpidemicSimulator extends JFrame {
 		graphPanel = new GraphPanel();
 		
 		GridBagConstraints gbc = new GridBagConstraints(); 
-		gbc.fill = GridBagConstraints.VERTICAL;
+		gbc.fill = GridBagConstraints.HORIZONTAL;
 		gbc.weightx = 1.0;
 		gbc.gridx = 1;
 		gbc.gridy = 0;
@@ -153,8 +151,7 @@ public final class EpidemicSimulator extends JFrame {
 		applyDeleteBtn.addActionListener(new ButtonListener("applyDeleteBtn"));
 		constraintsPanel.add(applyDeleteBtn);
 		
-		GridBagConstraints gbc = new GridBagConstraints(); 
-		gbc.fill = GridBagConstraints.VERTICAL;
+		GridBagConstraints gbc = new GridBagConstraints();
 		gbc.gridx = 2;
 		gbc.gridy = 0;
 		gbc.insets = new Insets(0,0,0,5);
@@ -245,6 +242,17 @@ public final class EpidemicSimulator extends JFrame {
 			timestep = 0;
 			graphPanel.updateTime(timestep);
 			
+			updateVerticesTable();
+		} catch (NumberFormatException nfe) {
+			// Highlight that the time increment value is invalid.
+		} catch (Exception e) {
+			Log.getLog(LOG_NAME).writeException(e);
+			e.printStackTrace();
+		}
+	}
+	
+	private void updateVerticesTable() {
+		try {
 			List<TemporalVertex> vertices = tgh.getCompleteGraph().getVertices().collect();
 			String[][] filteredVertices = new String[vertices.size()][];
 			for (int i = 0; i < vertices.size(); i++) {
@@ -253,14 +261,12 @@ public final class EpidemicSimulator extends JFrame {
 				filteredVertices[i] = vertex;
 			}
 			graphPanel.updateVertices(filteredVertices);
-		} catch (NumberFormatException nfe) {
-			// Highlight that the time increment value is invalid.
 		} catch (Exception e) {
 			Log.getLog(LOG_NAME).writeException(e);
 			e.printStackTrace();
 		}
 	}
-
+	
 	// --- The New Data Source Dialog ---
 	private void showNewSourceDialog() {
 		if (newSourceDialog == null) {
@@ -391,6 +397,7 @@ public final class EpidemicSimulator extends JFrame {
 					if (tgh.nextTimeStep()) {
 						timestep ++;
 						graphPanel.updateTime(timestep);
+						updateVerticesTable();
 					}
 					break;
 				case "applyMergeBtn":

@@ -1,5 +1,7 @@
 import java.util.List;
 
+import javax.swing.SwingUtilities;
+
 import org.apache.commons.lang3.tuple.Triple;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.gradoop.common.model.impl.id.GradoopId;
@@ -19,8 +21,12 @@ public class Testing {
 	
 	public static void main (String[] args) {
 		try {
-			
-			EpidemicSimulator sim = new EpidemicSimulator();
+		    SwingUtilities.invokeLater(new Runnable() {
+		        @Override
+		        public void run() {
+		        	EpidemicSimulator sim = new EpidemicSimulator();
+		        }
+		    });
 			
 //			TemporalCSVDataSource data = TemporalDataFactory.createCSVDataSource(
 //				"C:\\Users\\Student\\Documents\\Fourth Year\\COMP390 - Honours Year Project\\NSense_Traces_Set2_CRAWDAD",
