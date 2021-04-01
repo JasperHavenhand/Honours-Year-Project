@@ -18,7 +18,7 @@ public final class TemporalGraphHandler {
 
 	private TemporalGraph completeGraph;
 	private TemporalGraph currentGraph;
-	private String tokenName;
+	private static String TOKEN_NAME = "infected";
 	/** The probability of a vertex with the token passing it to its neighbours. */
 	private double tokenTransferProb;
 	private long timeIncrement;
@@ -30,15 +30,13 @@ public final class TemporalGraphHandler {
 	/**
 	 * Used to handle the dissemination of the given token over the given temporal graph, timestep by timestep.
 	 * @param graph The temporalGraph to be handled.
-	 * @param tokenName The name of the vertex property that represents the token that will be disseminated.
 	 * @param tokenTransferProb The probability of the token being transferred over an active edge (0.0 to 1.0).
 	 * @param timeIncrement The time increment to be used between each timestep (in milliseconds). 
 	 */
-	public TemporalGraphHandler(TemporalGraph graph, String tokenName, double tokenTransferProb, long timeIncrement) {
+	public TemporalGraphHandler(TemporalGraph graph, double tokenTransferProb, long timeIncrement) {
 		try {
 			completeGraph = graph;
 			this.tokenTransferProb = tokenTransferProb;
-			this.tokenName = tokenName;
 			
 			currentTimestamp = completeGraph.getEdges().sortPartition("validTime.f0", Order.ASCENDING)
 					.setParallelism(1).collect().get(0).getValidFrom();
@@ -131,15 +129,15 @@ public final class TemporalGraphHandler {
 			}
 			currentGraph = completeGraph.snapshot(new AsOf(currentTimestamp));
 			
-			String query = "MATCH (v1)-[]->(v2) WHERE (v1."+tokenName+" = false AND v2."+tokenName+" = true)"
-					+ "OR (v1."+tokenName+" = true AND v2."+tokenName+" = false)";
+			String query = "MATCH (v1)-[]->(v2) WHERE (v1."+TOKEN_NAME+" = false AND v2."+TOKEN_NAME+" = true)"
+					+ "OR (v1."+TOKEN_NAME+" = true AND v2."+TOKEN_NAME+" = false)";
 			
 			List<TemporalVertex> tokenNeighbours = currentGraph.query(query).getVertices().collect();
 			List<String> neighbourIDs = new ArrayList<>();
 			for (TemporalVertex v: tokenNeighbours) {
 				neighbourIDs.add(v.getId().toString());
 			}
-			completeGraph = disseminate(completeGraph, tokenName, tokenTransferProb, neighbourIDs);
+			completeGraph = disseminate(completeGraph, tokenTransferProb, neighbourIDs);
 			currentGraph = completeGraph.snapshot(new AsOf(currentTimestamp));
 			
 			return true;
@@ -153,18 +151,17 @@ public final class TemporalGraphHandler {
 	/**
 	 * A method for disseminating a token within a graph.
 	 * @param graph The graph to operate on.
-	 * @param tokenName The name of the vertex property being used as a token.
 	 * @param tokenTransferProb The probability of each possible token transfer occurring.
 	 * @param vertices The IDs of the vertices in the current version of the graph which either have
 	 *  the token or have an immediate neighbour that does (i.e. the ones that might next receive the token).
 	 * @return Updated TemporalGraph.
 	 */
-	TemporalGraph disseminate(TemporalGraph graph, String tokenName, double tokenTransferProb, List<String> vertices) {
+	private TemporalGraph disseminate(TemporalGraph graph, double tokenTransferProb, List<String> vertices) {
 		Random random = new Random();
 		TemporalGraph newGraph = graph.transformVertices((TemporalVertex v, TemporalVertex v2) -> {
-			if (vertices.contains(v.getId().toString()) && !v.getPropertyValue(tokenName).getBoolean() 
+			if (vertices.contains(v.getId().toString()) && !v.getPropertyValue(TOKEN_NAME).getBoolean() 
 					&& (random.nextDouble() < tokenTransferProb)) {
-				v.setProperty(tokenName, true);
+				v.setProperty(TOKEN_NAME, true);
 			}
 			return v;
 		});
@@ -175,14 +172,19 @@ public final class TemporalGraphHandler {
 	 * Sets the token to true for the vertices with the given IDs.
 	 * @param vertices The IDs of the target vertices.
 	 */
-	public void giveTokenTo(List<GradoopId> vertices) {
-		completeGraph = completeGraph.transformVertices((TemporalVertex v, TemporalVertex v2) -> {
-			if (vertices.contains(v.getId())) {
-				v.setProperty(tokenName, true);
+	public void giveTokenTo(List<String> vertices) {
+		completeGraph = giveTokenTo(completeGraph, vertices);
+		currentGraph = completeGraph.snapshot(new AsOf(currentTimestamp));
+	}
+	
+	private TemporalGraph giveTokenTo(TemporalGraph graph, List<String> vertices) {
+		TemporalGraph newGraph = graph.transformVertices((TemporalVertex v, TemporalVertex v2) -> {
+			if (vertices.contains(v.getId().toString())) {
+				v.setProperty(TOKEN_NAME, true);
 			}
 			return v;
 		});
-		currentGraph = completeGraph.snapshot(new AsOf(currentTimestamp));
-	} 
+		return newGraph;
+	}
 	
 }

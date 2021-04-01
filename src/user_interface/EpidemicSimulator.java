@@ -1,5 +1,6 @@
 package user_interface;
 
+import java.awt.CardLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
@@ -7,15 +8,19 @@ import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
@@ -35,9 +40,11 @@ public final class EpidemicSimulator extends JFrame {
 	private GraphPanel graphPanel;
 	
 	private JDialog newGraphDialog;
+	private CardLayout newGraphCards;
 	private JComboBox<String> newGraphSource;
 	private JComboBox<String> newGraphVirus;
 	private JTextField newGraphIncrement;
+	private JList<String> newGraphInfected;
 	
 	private JDialog newSourceDialog;
 	private JTextField newSourceName;
@@ -162,35 +169,59 @@ public final class EpidemicSimulator extends JFrame {
 	private void showNewGraphDialog() {
 		if (newGraphDialog == null) {
 			newGraphDialog = new JDialog(this, "Create a New Graph", true);
-			newGraphDialog.setLayout(new GridLayout(4,3,5,5));
+			newGraphCards = new CardLayout();
+			newGraphDialog.getContentPane().setLayout(newGraphCards);
 			
-			newGraphDialog.add(new JLabel("Select Data Source:"));
+			JPanel panel1 = new JPanel();
+			panel1.setLayout(new GridLayout(4,3,5,5));
+			
+			panel1.add(new JLabel("Select Data Source:"));
 			refreshNewGraphSource();
-			newGraphDialog.add(newGraphSource);
+			panel1.add(newGraphSource);
 			JButton newSourceBtn = new JButton("Create New");
 			newSourceBtn.addActionListener(new ButtonListener("newSourceBtn"));
-			newGraphDialog.add(newSourceBtn);
+			panel1.add(newSourceBtn);
 			
-			newGraphDialog.add(new JLabel("Select Virus:"));
+			panel1.add(new JLabel("Select Virus:"));
 			refreshNewGraphVirus();
-			newGraphDialog.add(newGraphVirus);
+			panel1.add(newGraphVirus);
 			JButton newVirusBtn = new JButton("Create New");
 			newVirusBtn.addActionListener(new ButtonListener("newVirusBtn"));
-			newGraphDialog.add(newVirusBtn);
+			panel1.add(newVirusBtn);
 			
-			newGraphDialog.add(new JLabel("Set increment between timesteps (in milliseconds):"));
+			panel1.add(new JLabel("Set increment between timesteps (in milliseconds):"));
 			newGraphIncrement = new JTextField();
-			newGraphDialog.add(newGraphIncrement);
+			panel1.add(newGraphIncrement);
 			
-			newGraphDialog.add(new JPanel());
-			newGraphDialog.add(new JPanel());
-			newGraphDialog.add(new JPanel());
+			panel1.add(new JPanel());
+			panel1.add(new JPanel());
+			panel1.add(new JPanel());
 			
 			JButton createGraphBtn = new JButton("Create Graph");
 			createGraphBtn.addActionListener(new ButtonListener("createGraphBtn"));
-			newGraphDialog.add(createGraphBtn);
+			panel1.add(createGraphBtn);
+			
+			newGraphDialog.add(panel1);
+			
+			JPanel panel2 = new JPanel();
+			panel2.setLayout(new GridLayout(2,2,5,5));
+			
+			panel2.add(new JLabel("Selected initially infected vertices:"));
+			newGraphInfected = new JList<String>();
+			newGraphInfected.setModel(new DefaultListModel<String>());
+			panel2.add(newGraphInfected);
+			
+			panel2.add(new JPanel());
+			
+			JButton infectVerticesBtn = new JButton("Confirm");
+			infectVerticesBtn.addActionListener(new ButtonListener("infectVerticesBtn"));
+			panel2.add(infectVerticesBtn);
+			
+			newGraphDialog.add(panel2);
+			
 			newGraphDialog.pack();
 		}
+		newGraphCards.first(newGraphDialog.getContentPane());
 		newGraphDialog.setVisible(true);
 	}
 	
@@ -202,8 +233,8 @@ public final class EpidemicSimulator extends JFrame {
 		List<String> sourceNames = new ArrayList<String>();
 		DefaultComboBoxModel<String> model = (DefaultComboBoxModel<String>) newGraphSource.getModel();
 		model.removeAllElements();
-		for (int i = 0; i < sources.size(); i++) {
-			sourceNames.add(sources.get(i).f0); 
+		for (Tuple2<String, String> s: sources) {
+			sourceNames.add(s.f0); 
 		}
 		model.addAll(sourceNames);
 		newGraphSource.setModel(model);
@@ -224,7 +255,7 @@ public final class EpidemicSimulator extends JFrame {
 		newGraphVirus.setModel(model);
 	}
 	
-	private void loadNewGraph() {
+	private void createNewGraph() {
 		try {
 			String dataSourceName = (String) newGraphSource.getSelectedItem();
 			String dataSourcePath = DataSources.getInstance().get(dataSourceName);
@@ -234,15 +265,23 @@ public final class EpidemicSimulator extends JFrame {
 			
 			tgh = new TemporalGraphHandler(
 					TemporalDataFactory.loadCSVDataSource(dataSourcePath).getTemporalGraph(),
-					virusName,virusProb,timeIncrement);
-			newGraphDialog.setVisible(false);
-			
-			graphPanel.updateVirus(virusName);
+					virusProb,timeIncrement);
 			
 			timestep = 0;
-			graphPanel.updateTime(timestep);
 			
-			updateVerticesTable();
+			// Loading the vertices so that the user can select which will be initially infected.
+			List<TemporalVertex> vertices = tgh.getCompleteGraph().getVertices().collect();
+			List<String> vertexIDs = new ArrayList<String>();
+			DefaultListModel<String> model = (DefaultListModel<String>) newGraphInfected.getModel();
+			model.removeAllElements();
+			for (TemporalVertex v: vertices) {
+				vertexIDs.add(v.getId().toString()); 
+			}
+			model.addAll(vertexIDs);
+			newGraphInfected.setModel(model);
+			
+			newGraphCards.next(newGraphDialog.getContentPane());
+			
 		} catch (NumberFormatException nfe) {
 			// Highlight that the time increment value is invalid.
 		} catch (Exception e) {
@@ -251,9 +290,18 @@ public final class EpidemicSimulator extends JFrame {
 		}
 	}
 	
+	private void displayNewGraph() {
+		tgh.giveTokenTo(newGraphInfected.getSelectedValuesList());
+		graphPanel.updateVirus((String) newGraphVirus.getSelectedItem());
+		graphPanel.updateTime(timestep);
+		updateVerticesTable();
+		newGraphDialog.setVisible(false);
+	}
+	
 	private void updateVerticesTable() {
 		try {
 			List<TemporalVertex> vertices = tgh.getCompleteGraph().getVertices().collect();
+			Collections.sort(vertices,Comparator.comparing((TemporalVertex vertex) -> vertex.getId()));
 			String[][] filteredVertices = new String[vertices.size()][];
 			for (int i = 0; i < vertices.size(); i++) {
 				String[] vertex = {vertices.get(i).getPropertyValue("name").getString(),
@@ -420,7 +468,10 @@ public final class EpidemicSimulator extends JFrame {
 					showNewGraphDialog();
 					break;
 				case "createGraphBtn":
-					loadNewGraph();
+					createNewGraph();
+					break;
+				case "infectVerticesBtn":
+					displayNewGraph();
 					break;
 				case "newSourceBtn":
 					showNewSourceDialog();
