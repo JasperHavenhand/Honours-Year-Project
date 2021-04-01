@@ -171,4 +171,18 @@ public final class TemporalGraphHandler {
 		return newGraph;
 	}
 	
+	/**
+	 * Sets the token to true for the vertices with the given IDs.
+	 * @param vertices The IDs of the target vertices.
+	 */
+	public void giveTokenTo(List<GradoopId> vertices) {
+		completeGraph = completeGraph.transformVertices((TemporalVertex v, TemporalVertex v2) -> {
+			if (vertices.contains(v.getId())) {
+				v.setProperty(tokenName, true);
+			}
+			return v;
+		});
+		currentGraph = completeGraph.snapshot(new AsOf(currentTimestamp));
+	} 
+	
 }
