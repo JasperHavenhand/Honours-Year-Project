@@ -22,9 +22,11 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 
 import org.apache.flink.api.java.tuple.Tuple2;
+import org.gradoop.common.model.impl.id.GradoopId;
 import org.gradoop.temporal.model.impl.pojo.TemporalVertex;
 
 import data.temporal.TemporalDataFactory;
@@ -38,6 +40,13 @@ public final class EpidemicSimulator extends JFrame {
 	private TemporalGraphHandler tgh;
 	private int timestep;
 	private GraphPanel graphPanel;
+	
+	private JTextField mergeStart;
+	private JTextField mergeDuration;
+	private JTextField delayTime;
+	private JTextField tempLimit;
+	private JTextField deleteVertex1;
+	private JTextField deleteVertex2;
 	
 	private JDialog newGraphDialog;
 	private CardLayout newGraphCards;
@@ -108,10 +117,10 @@ public final class EpidemicSimulator extends JFrame {
 		JLabel mergeLabel = new JLabel("Merge edges:");
 		constraintsPanel.add(mergeLabel);
 		
-		JTextField mergeStart = new JTextField();
+		mergeStart = new JTextField();
 		constraintsPanel.add(mergeStart);
 		
-		JTextField mergeDuration = new JTextField();
+		mergeDuration = new JTextField();
 		constraintsPanel.add(mergeDuration);
 		
 		JButton applyMergeBtn = new JButton("Apply");
@@ -122,7 +131,7 @@ public final class EpidemicSimulator extends JFrame {
 		JLabel delayLabel = new JLabel("Delay edges:");
 		constraintsPanel.add(delayLabel);
 		
-		JTextField delayTime = new JTextField();
+		delayTime = new JTextField();
 		constraintsPanel.add(delayTime);
 		
 		constraintsPanel.add(new JPanel());
@@ -135,24 +144,24 @@ public final class EpidemicSimulator extends JFrame {
 		JLabel limitLabel = new JLabel("Set temporality limit:");
 		constraintsPanel.add(limitLabel);
 		
-		JTextField limit = new JTextField();
-		constraintsPanel.add(limit);
+		tempLimit = new JTextField();
+		constraintsPanel.add(tempLimit);
 		
 		constraintsPanel.add(new JPanel());
 		
-		JButton applyLimitBtn = new JButton("Apply");
-		applyLimitBtn.addActionListener(new ButtonListener("applyLimitBtn"));
-		constraintsPanel.add(applyLimitBtn);
+		JButton applyTempLimitBtn = new JButton("Apply");
+		applyTempLimitBtn.addActionListener(new ButtonListener("applyTempLimitBtn"));
+		constraintsPanel.add(applyTempLimitBtn);
 		
 		// Delete Edge
 		JLabel deleteLabel = new JLabel("Delete edge between:");
 		constraintsPanel.add(deleteLabel);
 		
-		JTextField vertex1 = new JTextField();
-		constraintsPanel.add(vertex1);
+		deleteVertex1 = new JTextField();
+		constraintsPanel.add(deleteVertex1);
 		
-		JTextField vertex2 = new JTextField();
-		constraintsPanel.add(vertex2);
+		deleteVertex2 = new JTextField();
+		constraintsPanel.add(deleteVertex2);
 		
 		JButton applyDeleteBtn = new JButton("Apply");
 		applyDeleteBtn.addActionListener(new ButtonListener("applyDeleteBtn"));
@@ -173,49 +182,67 @@ public final class EpidemicSimulator extends JFrame {
 			newGraphDialog.getContentPane().setLayout(newGraphCards);
 			
 			JPanel panel1 = new JPanel();
-			panel1.setLayout(new GridLayout(4,3,5,5));
+			panel1.setLayout(new GridBagLayout());
+			GridBagConstraints gbc = new GridBagConstraints();
+			gbc.insets = new Insets(5,5,5,5);
 			
-			panel1.add(new JLabel("Select Data Source:"));
+			gbc.gridy = 0;
+			gbc.gridx = 0;
+			panel1.add(new JLabel("Select Data Source:"),gbc);
 			refreshNewGraphSource();
-			panel1.add(newGraphSource);
+			gbc.gridx = 1;
+			panel1.add(newGraphSource,gbc);
 			JButton newSourceBtn = new JButton("Create New");
 			newSourceBtn.addActionListener(new ButtonListener("newSourceBtn"));
-			panel1.add(newSourceBtn);
+			gbc.gridx = 2;
+			panel1.add(newSourceBtn,gbc);
 			
-			panel1.add(new JLabel("Select Virus:"));
+			gbc.gridy = 1;
+			gbc.gridx = 0;
+			panel1.add(new JLabel("Select Virus:"),gbc);
 			refreshNewGraphVirus();
-			panel1.add(newGraphVirus);
+			gbc.gridx = 1;
+			panel1.add(newGraphVirus,gbc);
 			JButton newVirusBtn = new JButton("Create New");
 			newVirusBtn.addActionListener(new ButtonListener("newVirusBtn"));
-			panel1.add(newVirusBtn);
+			gbc.gridx = 2;
+			panel1.add(newVirusBtn,gbc);
 			
-			panel1.add(new JLabel("Set increment between timesteps (in milliseconds):"));
+			gbc.gridy = 2;
+			gbc.gridx = 0;
+			panel1.add(new JLabel("Set increment between timesteps (in milliseconds):"),gbc);
 			newGraphIncrement = new JTextField();
-			panel1.add(newGraphIncrement);
-			
-			panel1.add(new JPanel());
-			panel1.add(new JPanel());
-			panel1.add(new JPanel());
+			gbc.gridx = 1;
+			gbc.fill = GridBagConstraints.HORIZONTAL;
+			panel1.add(newGraphIncrement,gbc);
+			gbc.fill = GridBagConstraints.NONE;
 			
 			JButton createGraphBtn = new JButton("Create Graph");
 			createGraphBtn.addActionListener(new ButtonListener("createGraphBtn"));
-			panel1.add(createGraphBtn);
+			gbc.gridy = 3;
+			gbc.gridx = 2;
+			panel1.add(createGraphBtn,gbc);
 			
 			newGraphDialog.add(panel1);
 			
 			JPanel panel2 = new JPanel();
-			panel2.setLayout(new GridLayout(2,2,5,5));
+			panel2.setLayout(new GridBagLayout());
 			
-			panel2.add(new JLabel("Selected initially infected vertices:"));
+			gbc.gridy = 0;
+			gbc.gridx = 0;
+			panel2.add(new JLabel("Selected initially infected vertices:"),gbc);
 			newGraphInfected = new JList<String>();
 			newGraphInfected.setModel(new DefaultListModel<String>());
-			panel2.add(newGraphInfected);
-			
-			panel2.add(new JPanel());
+			gbc.gridx = 1;
+			gbc.fill = GridBagConstraints.BOTH;
+			panel2.add(new JScrollPane(newGraphInfected),gbc);
+			gbc.fill = GridBagConstraints.NONE;
 			
 			JButton infectVerticesBtn = new JButton("Confirm");
 			infectVerticesBtn.addActionListener(new ButtonListener("infectVerticesBtn"));
-			panel2.add(infectVerticesBtn);
+			gbc.gridy = 1;
+			gbc.gridx = 1;
+			panel2.add(infectVerticesBtn,gbc);
 			
 			newGraphDialog.add(panel2);
 			
@@ -431,6 +458,57 @@ public final class EpidemicSimulator extends JFrame {
 		}
 	}
 	
+	// --- Constraint Methods ---
+	private void applyMerge() {
+		try {
+		long startTime = Long.parseLong(mergeStart.getText());
+		long duration = Long.parseLong(mergeDuration.getText());
+		tgh.mergeEdges(startTime, duration);
+		}  catch (NumberFormatException nfe) {
+			// highlight that the times must be in milliseconds.
+		} catch (Exception e) {
+			Log.getLog(LOG_NAME).writeException(e);
+			e.printStackTrace();
+		}
+	}
+	
+	private void applyDelay() {
+		try {
+			long time = Long.parseLong(delayTime.getText());
+			tgh.delayEdges(time);
+		}  catch (NumberFormatException nfe) {
+			// highlight that the time must be in milliseconds.
+		} catch (Exception e) {
+			Log.getLog(LOG_NAME).writeException(e);
+			e.printStackTrace();
+		}
+	}
+	
+	private void applyTempLimit() {
+		try {
+			int limit = Integer.parseInt(tempLimit.getText());
+			tgh.limitTemporality(limit);
+		}  catch (NumberFormatException nfe) {
+			// highlight that the limit must be an integer.
+		} catch (Exception e) {
+			Log.getLog(LOG_NAME).writeException(e);
+			e.printStackTrace();
+		}
+	}
+	
+	private void applyDelete() {
+		try {
+			GradoopId vertex1 = GradoopId.fromString(deleteVertex1.getText());
+			GradoopId vertex2 = GradoopId.fromString(deleteVertex2.getText());
+			tgh.deleteEdgeBetween(vertex1, vertex2);
+		}  catch (IllegalArgumentException iae) {
+			// highlight that the limit must be a hexadecimal.
+		} catch (Exception e) {
+			Log.getLog(LOG_NAME).writeException(e);
+			e.printStackTrace();
+		}
+	}
+	
 	private class ButtonListener implements ActionListener {
 		private String buttonName;
 		
@@ -449,20 +527,16 @@ public final class EpidemicSimulator extends JFrame {
 					}
 					break;
 				case "applyMergeBtn":
-//					tgh.mergeEdges(startTime, duration);
-					// Update graph panel?
+					applyMerge();
 					break;
 				case "applyDelayBtn":
-//					tgh.delayEdges(time);
-					// Update graph panel?
+					applyDelay();
 					break;
-				case "applyLimitBtn":
-//					tgh.limitTemporality(limit);
-					// Update graph panel?
+				case "applyTempLimitBtn":
+					applyTempLimit();
 					break;
 				case "applyDeleteBtn":
-//					tgh.delayEdges(time);
-					// Update graph panel?
+					applyDelete();
 					break;
 				case "newGraphBtn":
 					showNewGraphDialog();

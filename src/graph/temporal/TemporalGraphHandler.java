@@ -62,16 +62,17 @@ public final class TemporalGraphHandler {
 	}
 	
 	/**
-	 * @return The temporalities for each edge in the complete graph.
+	 * @return The temporalities for each edge in the complete graph. 
+	 * Each edge is represented by the IDs of the vertices it intercepts with.
 	 */
-	public List<Triple<GradoopId,GradoopId,Long>> getTemporalities() {
+	public List<Triple<String,String,Long>> getTemporalities() {
 		return Connectivity.temporalitiesOf(completeGraph);
 	}
 
 	/**
 	 * @return The Id of each vertex in the graph paired with a list of the Ids of the vertices temporarily reachable from it.
 	 */
-	public List<Tuple2<GradoopId, List<GradoopId>>> getReachabilitySets() {
+	public List<Tuple2<String, List<String>>> getReachabilitySets() {
 		return Connectivity.reachabilitySetsOf(completeGraph);
 	}
 	

@@ -25,13 +25,17 @@ class Connectivity {
 	 * @param graph
 	 * @return Each vertex of the given graph, paired with a list of the vertices temporarily reachable from it.
 	 */
-	static List<Tuple2<GradoopId, List<GradoopId>>> reachabilitySetsOf(TemporalGraph graph) {
+	static List<Tuple2<String, List<String>>> reachabilitySetsOf(TemporalGraph graph) {
 		try {
-			List<Tuple2<GradoopId, List<GradoopId>>> sets = new ArrayList<Tuple2<GradoopId, List<GradoopId>>>();
+			List<Tuple2<String, List<String>>> sets = new ArrayList<Tuple2<String, List<String>>>();
 			List<TemporalVertex> vertices = graph.getVertices().collect();
 			for (TemporalVertex vertex: vertices) {
 				List<GradoopId> results = findReachableVertices(graph, vertex.getId());
-				sets.add(new Tuple2<GradoopId, List<GradoopId>>(vertex.getId(),results));
+				List<String> strResults = new ArrayList<String>();
+				for (GradoopId id: results) {
+					strResults.add(id.toString());
+				}
+				sets.add(new Tuple2<String, List<String>>(vertex.getId().toString(),strResults));
 			}
 			return sets;
 		} catch (Exception e) {
@@ -97,12 +101,12 @@ class Connectivity {
 	/**
 	 * Finds the temporality of the edges in the given graph.
 	 * @param graph A TemporalGraph
-	 * @return A list of triples, each containing the Ids of a pair of
+	 * @return A list of triples, each containing the IDs of a pair of
 	 *  connected vertices and the temporality of the edge between them.
 	 */
-	static List<Triple<GradoopId,GradoopId,Long>> temporalitiesOf(TemporalGraph graph) {
+	static List<Triple<String,String,Long>> temporalitiesOf(TemporalGraph graph) {
 		try {
-			List<Triple<GradoopId,GradoopId,Long>> temporalities = new ArrayList<Triple<GradoopId,GradoopId,Long>>();
+			List<Triple<String,String,Long>> temporalities = new ArrayList<Triple<String,String,Long>>();
 			List<TemporalVertex> vertices = graph.getVertices().collect();
 			
 			for (TemporalVertex v1: vertices) {
@@ -110,7 +114,7 @@ class Connectivity {
 					if (v1.getId().compareTo(v2.getId()) < 0) {
 						Long count = countEdgesBetween(graph, v1, v2) + countEdgesBetween(graph, v2, v1);
 						if (count > 0) {
-							temporalities.add(Triple.of(v1.getId(), v2.getId(), count));
+							temporalities.add(Triple.of(v1.getId().toString(), v2.getId().toString(), count));
 						}
 					}
 				}				
