@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListModel;
@@ -26,7 +27,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 
 import org.apache.flink.api.java.tuple.Tuple2;
-import org.gradoop.common.model.impl.id.GradoopId;
 import org.gradoop.temporal.model.impl.pojo.TemporalVertex;
 
 import data.temporal.TemporalDataFactory;
@@ -38,6 +38,7 @@ public final class EpidemicSimulator extends JFrame {
 
 	private static final long serialVersionUID = -8833078011625169517L;
 	private TemporalGraphHandler tgh;
+	private TemporalGraphHandler tghNew;
 	private int timestep;
 	private GraphPanel graphPanel;
 	
@@ -45,8 +46,8 @@ public final class EpidemicSimulator extends JFrame {
 	private JTextField mergeDuration;
 	private JTextField delayTime;
 	private JTextField tempLimit;
-	private JTextField deleteVertex1;
-	private JTextField deleteVertex2;
+	private JComboBox<String> deleteVertex1;
+	private JComboBox<String> deleteVertex2;
 	
 	private JDialog newGraphDialog;
 	private CardLayout newGraphCards;
@@ -157,10 +158,12 @@ public final class EpidemicSimulator extends JFrame {
 		JLabel deleteLabel = new JLabel("Delete edge between:");
 		constraintsPanel.add(deleteLabel);
 		
-		deleteVertex1 = new JTextField();
+		deleteVertex1 = new JComboBox<String>();
+		deleteVertex1.setModel(new DefaultComboBoxModel<String>());
 		constraintsPanel.add(deleteVertex1);
 		
-		deleteVertex2 = new JTextField();
+		deleteVertex2 = new JComboBox<String>();
+		deleteVertex1.setModel(new DefaultComboBoxModel<String>());
 		constraintsPanel.add(deleteVertex2);
 		
 		JButton applyDeleteBtn = new JButton("Apply");
@@ -282,6 +285,8 @@ public final class EpidemicSimulator extends JFrame {
 		newGraphVirus.setModel(model);
 	}
 	
+	/** Creates the new TemporalGraphHandler and fetches the vertices for the user
+	 * to select the initially infected ones. */
 	private void createNewGraph() {
 		try {
 			String dataSourceName = (String) newGraphSource.getSelectedItem();
@@ -290,24 +295,20 @@ public final class EpidemicSimulator extends JFrame {
 			Double virusProb = Tokens.getInstance().get(virusName);
 			Long timeIncrement = Long.parseLong(newGraphIncrement.getText());
 			
-			tgh = new TemporalGraphHandler(
+			/* Temporarily holding the new TemporalGraphHandler in case the 
+			 * user decides to cancel creating the new graph. */
+			tghNew = new TemporalGraphHandler(
 					TemporalDataFactory.loadCSVDataSource(dataSourcePath).getTemporalGraph(),
 					virusProb,timeIncrement);
 			
-			timestep = 0;
-			
 			// Loading the vertices so that the user can select which will be initially infected.
-			List<TemporalVertex> vertices = tgh.getCompleteGraph().getVertices().collect();
-			List<String> vertexIDs = new ArrayList<String>();
-			DefaultListModel<String> model = (DefaultListModel<String>) newGraphInfected.getModel();
-			model.removeAllElements();
-			for (TemporalVertex v: vertices) {
-				vertexIDs.add(v.getId().toString()); 
-			}
-			model.addAll(vertexIDs);
+			Set<String> vertices = tghNew.getVertices().keySet();
+			DefaultListModel<String> model = new DefaultListModel<String>();
+			model.addAll(vertices);
 			newGraphInfected.setModel(model);
 			
 			newGraphCards.next(newGraphDialog.getContentPane());
+			newGraphDialog.validate();
 			
 		} catch (NumberFormatException nfe) {
 			// Highlight that the time increment value is invalid.
@@ -317,11 +318,28 @@ public final class EpidemicSimulator extends JFrame {
 		}
 	}
 	
+	/** Let's the use choose the initially infected vertices and then updates the 
+	 * graph constraints panels if the user commits to this new graph. */
 	private void displayNewGraph() {
-		tgh.giveTokenTo(newGraphInfected.getSelectedValuesList());
+		tgh = tghNew;
+		tghNew = null;
+		
+		List<String> ids = new ArrayList<String>();
+		for (String name: newGraphInfected.getSelectedValuesList()) {
+			ids.add(tgh.getVertices().get(name));
+		}
+		tgh.giveTokenTo(ids);
 		graphPanel.updateVirus((String) newGraphVirus.getSelectedItem());
+		timestep = 0;
 		graphPanel.updateTime(timestep);
 		updateVerticesTable();
+		
+		Set<String> vertices = tgh.getVertices().keySet();
+		DefaultComboBoxModel<String> model = new DefaultComboBoxModel<String>();
+		model.addAll(vertices);
+		deleteVertex1.setModel(model);
+		deleteVertex2.setModel(model);
+		
 		newGraphDialog.setVisible(false);
 	}
 	
@@ -498,9 +516,11 @@ public final class EpidemicSimulator extends JFrame {
 	
 	private void applyDelete() {
 		try {
-			GradoopId vertex1 = GradoopId.fromString(deleteVertex1.getText());
-			GradoopId vertex2 = GradoopId.fromString(deleteVertex2.getText());
-			tgh.deleteEdgeBetween(vertex1, vertex2);
+			if (deleteVertex1.getSelectedItem() != null && deleteVertex2.getSelectedItem() != null) {
+				String vertex1 = tgh.getVertices().get((String) deleteVertex1.getSelectedItem());
+				String vertex2 = tgh.getVertices().get((String) deleteVertex2.getSelectedItem());
+				tgh.deleteEdgeBetween(vertex1, vertex2);
+			}
 		}  catch (IllegalArgumentException iae) {
 			// highlight that the limit must be a hexadecimal.
 		} catch (Exception e) {

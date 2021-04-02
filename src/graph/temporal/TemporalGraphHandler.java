@@ -1,13 +1,16 @@
 package graph.temporal;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 import org.apache.commons.lang3.tuple.Triple;
 import org.apache.flink.api.common.operators.Order;
 import org.apache.flink.api.java.tuple.Tuple2;
-import org.gradoop.common.model.impl.id.GradoopId;
 import org.gradoop.temporal.model.impl.TemporalGraph;
 import org.gradoop.temporal.model.impl.functions.predicates.AsOf;
 import org.gradoop.temporal.model.impl.pojo.TemporalVertex;
@@ -23,7 +26,7 @@ public final class TemporalGraphHandler {
 	private double tokenTransferProb;
 	private long timeIncrement;
 	private long currentTimestamp;
-	private long lastTimestamp;
+	private long finalTimestamp;
 	/** The name of the log file that will be used by this class. */
 	private static String LOG_NAME = "graphs_log";
 	
@@ -40,7 +43,7 @@ public final class TemporalGraphHandler {
 			
 			currentTimestamp = completeGraph.getEdges().sortPartition("validTime.f0", Order.ASCENDING)
 					.setParallelism(1).collect().get(0).getValidFrom();
-			lastTimestamp = completeGraph.getEdges().sortPartition("validTime.f1", Order.DESCENDING)
+			finalTimestamp = completeGraph.getEdges().sortPartition("validTime.f1", Order.DESCENDING)
 					.setParallelism(1).collect().get(0).getValidTo();
 			
 			currentGraph = completeGraph.snapshot(new AsOf(currentTimestamp));
@@ -59,6 +62,36 @@ public final class TemporalGraphHandler {
 	 * the current timestep of the {@code TemporalGraphHandler}. */
 	public TemporalGraph getCurrentGraph() {
 		return currentGraph;
+	}
+	
+	/** @return The current timestamp in epoch milliseconds. */
+	public Long getCurrentTimestamp() {
+		return currentTimestamp;
+	}
+	
+	/** @return The final timestamp, i.e., the last time any 
+	 * edge is active, in epoch milliseconds. */
+	public Long getFinalTimestamp() {
+		return finalTimestamp;
+	}
+	
+	/**
+	 * @return a mapping of each vertex name to the corresponding vertex ID.  
+	 */
+	public Map<String,String> getVertices() {
+		try {
+			Map<String,String> result = new HashMap<String,String>();
+			List<TemporalVertex> vertices = completeGraph.getVertices().collect();
+			Collections.sort(vertices,Comparator.comparing((TemporalVertex vertex) -> vertex.getId()));
+			for (TemporalVertex vertex: vertices) {
+				result.put(vertex.getPropertyValue("name").getString(),vertex.getId().toString());
+			}
+			return result;
+		} catch (Exception e) {
+			Log.getLog(LOG_NAME).writeException(e);
+			e.printStackTrace();
+			return null;
+		}
 	}
 	
 	/**
@@ -111,7 +144,7 @@ public final class TemporalGraphHandler {
 	 * @param vertex1 The id of the first vertex.
 	 * @param vertex2 The id of the second vertex.
 	 */
-	public void deleteEdgeBetween(GradoopId vertex1, GradoopId vertex2) {
+	public void deleteEdgeBetween(String vertex1, String vertex2) {
 		completeGraph = Connectivity.deleteEdgeBetween(completeGraph, vertex1, vertex2);
 		currentGraph = completeGraph.snapshot(new AsOf(currentTimestamp));
 	}
@@ -125,7 +158,7 @@ public final class TemporalGraphHandler {
 	public Boolean nextTimeStep() {
 		try {
 			currentTimestamp += timeIncrement;
-			if (currentTimestamp > lastTimestamp) {
+			if (currentTimestamp > finalTimestamp) {
 				return false;
 			}
 			currentGraph = completeGraph.snapshot(new AsOf(currentTimestamp));
@@ -163,6 +196,7 @@ public final class TemporalGraphHandler {
 			if (vertices.contains(v.getId().toString()) && !v.getPropertyValue(TOKEN_NAME).getBoolean() 
 					&& (random.nextDouble() < tokenTransferProb)) {
 				v.setProperty(TOKEN_NAME, true);
+				System.out.println(v.getPropertyValue("name"));
 			}
 			return v;
 		});

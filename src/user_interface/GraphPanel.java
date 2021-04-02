@@ -27,6 +27,8 @@ final class GraphPanel extends JPanel {
 		gbc.gridy = 0;
 		add(timestepLabel,gbc);
 		
+		//add current and final timestamps
+		
 		virusNameLabel = new JLabel("Virus Name: ");
 		gbc.gridy = 1;
 		add(virusNameLabel,gbc);

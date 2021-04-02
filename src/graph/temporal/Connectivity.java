@@ -270,16 +270,16 @@ class Connectivity {
 	 * @param vertex2 The id of the second vertex.
 	 * @return The updated TemporalGraph.
 	 */
-	static TemporalGraph deleteEdgeBetween(TemporalGraph graph, GradoopId vertex1, GradoopId vertex2) {
+	static TemporalGraph deleteEdgeBetween(TemporalGraph graph, String vertex1, String vertex2) {
 		DataSet<TemporalEdge> filteredEdges = 
 				graph.getEdges().filter(new FilterFunction<TemporalEdge>() {
 					private static final long serialVersionUID = -8621601493928872890L;
 					@Override
 					public boolean filter(TemporalEdge edge) throws Exception {
-						Boolean v1toV2 = edge.getSourceId().equals(vertex1) &&
-								 edge.getTargetId().equals(vertex2);
-						Boolean v2toV1 = edge.getSourceId().equals(vertex2) &&
-								 edge.getTargetId().equals(vertex1);
+						Boolean v1toV2 = edge.getSourceId().toString().equals(vertex1) &&
+								 edge.getTargetId().toString().equals(vertex2);
+						Boolean v2toV1 = edge.getSourceId().toString().equals(vertex2) &&
+								 edge.getTargetId().toString().equals(vertex1);
 						return !(v1toV2 || v2toV1);
 					}
 				});
