@@ -195,10 +195,10 @@ public final class TemporalGraphHandler {
 	private TemporalGraph disseminate(TemporalGraph graph, double tokenTransferProb, List<String> vertices) {
 		Random random = new Random();
 		TemporalGraph newGraph = graph.transformVertices((TemporalVertex v, TemporalVertex v2) -> {
+			System.out.println(v.getPropertyValue("name")+" "+v.getPropertyValue(TOKEN_NAME));
 			if (vertices.contains(v.getId().toString()) && !v.getPropertyValue(TOKEN_NAME).getBoolean() 
 					&& (random.nextDouble() < tokenTransferProb)) {
 				v.setProperty(TOKEN_NAME, true);
-				System.out.println(v.getPropertyValue("name")+" "+v.getPropertyValue(TOKEN_NAME));
 			}
 			return v;
 		});
