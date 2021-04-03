@@ -331,8 +331,10 @@ public final class EpidemicSimulator extends JFrame {
 		tgh.giveTokenTo(ids);
 		graphPanel.updateVirus((String) newGraphVirus.getSelectedItem());
 		timestep = 0;
-		graphPanel.updateTime(timestep);
+		graphPanel.updateTimestep(timestep);
 		updateVerticesTable();
+		graphPanel.updateCurrentTimestamp(tgh.getCurrentTimestamp());
+		graphPanel.updateFinalTimestamp(tgh.getFinalTimestamp());
 		
 		Set<String> vertices = tgh.getVertices().keySet();
 		DefaultComboBoxModel<String> model = new DefaultComboBoxModel<String>();
@@ -341,23 +343,6 @@ public final class EpidemicSimulator extends JFrame {
 		deleteVertex2.setModel(model);
 		
 		newGraphDialog.setVisible(false);
-	}
-	
-	private void updateVerticesTable() {
-		try {
-			List<TemporalVertex> vertices = tgh.getCompleteGraph().getVertices().collect();
-			Collections.sort(vertices,Comparator.comparing((TemporalVertex vertex) -> vertex.getId()));
-			String[][] filteredVertices = new String[vertices.size()][];
-			for (int i = 0; i < vertices.size(); i++) {
-				String[] vertex = {vertices.get(i).getPropertyValue("name").getString(),
-				vertices.get(i).getPropertyValue("infected").toString()};
-				filteredVertices[i] = vertex;
-			}
-			graphPanel.updateVertices(filteredVertices);
-		} catch (Exception e) {
-			Log.getLog(LOG_NAME).writeException(e);
-			e.printStackTrace();
-		}
 	}
 	
 	// --- The New Data Source Dialog ---
@@ -529,6 +514,33 @@ public final class EpidemicSimulator extends JFrame {
 		}
 	}
 	
+	// --- GUI Update Methods ---
+	private void nextTimeStep() {
+		if (tgh != null && tgh.nextTimeStep()) {
+			timestep ++;
+			graphPanel.updateTimestep(timestep);
+			graphPanel.updateCurrentTimestamp(tgh.getCurrentTimestamp());
+			updateVerticesTable();
+		}
+	}
+	
+	private void updateVerticesTable() {
+		try {
+			List<TemporalVertex> vertices = tgh.getCompleteGraph().getVertices().collect();
+			Collections.sort(vertices,Comparator.comparing((TemporalVertex vertex) -> vertex.getId()));
+			String[][] filteredVertices = new String[vertices.size()][];
+			for (int i = 0; i < vertices.size(); i++) {
+				String[] vertex = {vertices.get(i).getPropertyValue("name").getString(),
+				vertices.get(i).getPropertyValue("infected").toString()};
+				filteredVertices[i] = vertex;
+			}
+			graphPanel.updateVertices(filteredVertices);
+		} catch (Exception e) {
+			Log.getLog(LOG_NAME).writeException(e);
+			e.printStackTrace();
+		}
+	}
+	
 	private class ButtonListener implements ActionListener {
 		private String buttonName;
 		
@@ -540,11 +552,7 @@ public final class EpidemicSimulator extends JFrame {
 		public void actionPerformed(ActionEvent e) {
 			switch (buttonName) {
 				case "nextStepBtn":
-					if (tgh.nextTimeStep()) {
-						timestep ++;
-						graphPanel.updateTime(timestep);
-						updateVerticesTable();
-					}
+					nextTimeStep();
 					break;
 				case "applyMergeBtn":
 					applyMerge();

@@ -13,7 +13,7 @@ import javax.swing.table.DefaultTableModel;
 final class GraphPanel extends JPanel {
 	private static final long serialVersionUID = -7655972769282670993L;
 	
-	private JLabel timestepLabel, virusNameLabel, virusProbLabel;
+	private JLabel timestepLabel, currTimestampLabel, fnlTimestampLabel, virusNameLabel, virusProbLabel;
 	private JTable verticesTable;
 	private JScrollPane verticesSPane;
 	
@@ -27,13 +27,19 @@ final class GraphPanel extends JPanel {
 		gbc.gridy = 0;
 		add(timestepLabel,gbc);
 		
-		//add current and final timestamps
+		currTimestampLabel = new JLabel("Current Timestamp: ");
+		gbc.gridy = 1;
+		add(currTimestampLabel,gbc);
+		
+		fnlTimestampLabel = new JLabel("Final Timestamp: ");
+		gbc.gridy = 2;
+		add(fnlTimestampLabel,gbc);
 		
 		virusNameLabel = new JLabel("Virus Name: ");
-		gbc.gridy = 1;
+		gbc.gridy = 3;
 		add(virusNameLabel,gbc);
 		virusProbLabel = new JLabel("Probability of Transmission: ");
-		gbc.gridy = 2;
+		gbc.gridy = 4;
 		add(virusProbLabel,gbc);
 		
 		String data[][] = {};
@@ -49,14 +55,22 @@ final class GraphPanel extends JPanel {
 		});
 		verticesSPane = new JScrollPane(verticesTable);
 		verticesSPane.setBorder(new EmptyBorder(0, 0, 0, 0));
-		gbc.gridy = 3;
+		gbc.gridy = 5;
 		gbc.fill = GridBagConstraints.BOTH;
 		add(verticesSPane,gbc);
 	}
 	
-	void updateTime(int timestep) {
+	void updateTimestep(int timestep) {
 		timestepLabel.setText("Timestep " + timestep);
 	}
+	
+	void updateCurrentTimestamp(Long timestamp) {
+		currTimestampLabel.setText("Current Timestamp: " + timestamp);
+	}
+	
+	void updateFinalTimestamp(Long timestamp) {
+		fnlTimestampLabel.setText("Final Timestamp: " + timestamp);
+	} 
 	
 	void updateVirus(String virusName) {
 		virusNameLabel.setText("Virus Name: " + virusName);

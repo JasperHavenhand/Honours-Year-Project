@@ -40,6 +40,7 @@ public final class TemporalGraphHandler {
 		try {
 			completeGraph = graph;
 			this.tokenTransferProb = tokenTransferProb;
+			this.timeIncrement = timeIncrement;
 			
 			currentTimestamp = completeGraph.getEdges().sortPartition("validTime.f0", Order.ASCENDING)
 					.setParallelism(1).collect().get(0).getValidFrom();
@@ -158,6 +159,7 @@ public final class TemporalGraphHandler {
 	public Boolean nextTimeStep() {
 		try {
 			currentTimestamp += timeIncrement;
+			
 			if (currentTimestamp > finalTimestamp) {
 				return false;
 			}
@@ -196,10 +198,11 @@ public final class TemporalGraphHandler {
 			if (vertices.contains(v.getId().toString()) && !v.getPropertyValue(TOKEN_NAME).getBoolean() 
 					&& (random.nextDouble() < tokenTransferProb)) {
 				v.setProperty(TOKEN_NAME, true);
-				System.out.println(v.getPropertyValue("name"));
+				System.out.println(v.getPropertyValue("name")+" "+v.getPropertyValue(TOKEN_NAME));
 			}
 			return v;
 		});
+
 		return newGraph;
 	}
 	
