@@ -193,17 +193,33 @@ public final class TemporalGraphHandler {
 	 * @return Updated TemporalGraph.
 	 */
 	private TemporalGraph disseminate(TemporalGraph graph, double tokenTransferProb, List<String> vertices) {
-		Random random = new Random();
-		TemporalGraph newGraph = graph.transformVertices((TemporalVertex v, TemporalVertex v2) -> {
-			System.out.println(v.getPropertyValue("name")+" "+v.getPropertyValue(TOKEN_NAME));
-			if (vertices.contains(v.getId().toString()) && !v.getPropertyValue(TOKEN_NAME).getBoolean() 
-					&& (random.nextDouble() < tokenTransferProb)) {
-				v.setProperty(TOKEN_NAME, true);
+		try {
+			Random random = new Random();
+			List<TemporalVertex> vertexList = graph.getVertices().collect();
+			for (TemporalVertex v: vertexList) {
+				if (vertices.contains(v.getId().toString()) && !v.getPropertyValue(TOKEN_NAME).getBoolean() 
+						&& (random.nextDouble() < tokenTransferProb)) {
+					v.setProperty(TOKEN_NAME, true);
+				}
 			}
-			return v;
-		});
-
-		return newGraph;
+			
+			// There appears to be issues with delayed and duplicated iterative calls when using transformVertices.
+//			TemporalGraph newGraph = graph.transformVertices((TemporalVertex v, TemporalVertex v2) -> {
+//				if (vertices.contains(v.getId().toString()) && !v.getPropertyValue(TOKEN_NAME).getBoolean() 
+//						&& (random.nextDouble() < tokenTransferProb)) {
+//					v.setProperty(TOKEN_NAME, true);
+//				}
+//				return v;
+//			});
+			
+			TemporalGraph newGraph = graph.getFactory().fromCollections(vertexList, graph.getEdges().collect());
+			
+			return newGraph;
+		} catch (Exception e) {
+			Log.getLog(LOG_NAME).writeException(e);
+			e.printStackTrace();
+			return null;
+		}
 	}
 	
 	/**

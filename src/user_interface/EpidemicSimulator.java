@@ -340,6 +340,7 @@ public final class EpidemicSimulator extends JFrame {
 		tgh = tghNew;
 		tghNew = null;
 		
+		// Updating the graph panel.
 		List<String> ids = new ArrayList<String>();
 		for (String name: newGraphInfected.getSelectedValuesList()) {
 			ids.add(tgh.getVertices().get(name));
@@ -352,11 +353,14 @@ public final class EpidemicSimulator extends JFrame {
 		graphPanel.updateCurrentTimestamp(tgh.getCurrentTimestamp());
 		graphPanel.updateFinalTimestamp(tgh.getFinalTimestamp());
 		
+		// Updating the constraints panel. 
 		Set<String> vertices = tgh.getVertices().keySet();
-		DefaultComboBoxModel<String> model = new DefaultComboBoxModel<String>();
-		model.addAll(vertices);
-		deleteVertex1.setModel(model);
-		deleteVertex2.setModel(model);
+		DefaultComboBoxModel<String> model1 = new DefaultComboBoxModel<String>();
+		DefaultComboBoxModel<String> model2 = new DefaultComboBoxModel<String>();
+		model1.addAll(vertices);
+		model2.addAll(vertices);
+		deleteVertex1.setModel(model1);
+		deleteVertex2.setModel(model2);
 		
 		newGraphDialog.setVisible(false);
 	}
