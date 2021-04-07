@@ -19,14 +19,14 @@ import utilities.Log;
 
 public class Testing {
 	
-	public static void main (String[] args) {
-		try {
-		    SwingUtilities.invokeLater(new Runnable() {
-		        @Override
-		        public void run() {
-		        	EpidemicSimulator sim = new EpidemicSimulator();
-		        }
-		    });
+//	public static void main (String[] args) {
+//		try {
+//		    SwingUtilities.invokeLater(new Runnable() {
+//		        @Override
+//		        public void run() {
+//		        	EpidemicSimulator sim = new EpidemicSimulator();
+//		        }
+//		    });
 			
 //			TemporalCSVDataSource data = TemporalDataFactory.createCSVDataSource(
 //				"C:\\Users\\Student\\Documents\\Fourth Year\\COMP390 - Honours Year Project\\NSense_Traces_Set2_CRAWDAD",
@@ -67,10 +67,10 @@ public class Testing {
 //			}
 //			handler.getCompleteGraph().getVertices().print();
 				
-		} catch (Exception e) {
-			Log.getLog("data_sources_log").writeException(e);
-			e.printStackTrace();
-		}
-		
-	}
+//		} catch (Exception e) {
+//			Log.getLog("data_sources_log").writeException(e);
+//			e.printStackTrace();
+//		}
+//		
+//	}
 }

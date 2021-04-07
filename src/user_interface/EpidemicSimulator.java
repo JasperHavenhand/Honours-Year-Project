@@ -25,6 +25,7 @@ import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.gradoop.temporal.model.impl.pojo.TemporalVertex;
@@ -67,6 +68,20 @@ public final class EpidemicSimulator extends JFrame {
 	
 	private static String LOG_NAME = "general_log";
 	
+	public static void main(String[] args) {
+		try {
+		    SwingUtilities.invokeLater(new Runnable() {
+		        @Override
+		        public void run() {
+		        	new EpidemicSimulator();
+		        }
+		    });
+		} catch (Exception e) {
+			Log.getLog(LOG_NAME).writeException(e);
+			e.printStackTrace();
+		}
+	}
+	
 	// --- Initialising the Simulator ---
 	public EpidemicSimulator() {
 		setLayout(new GridBagLayout());
@@ -76,6 +91,7 @@ public final class EpidemicSimulator extends JFrame {
 		createGraphPanel();
 		createConstraintsPanel();
 		
+		setDefaultCloseOperation(EXIT_ON_CLOSE);
 		setExtendedState(JFrame.MAXIMIZED_BOTH);
 		setVisible(true);
 	}
