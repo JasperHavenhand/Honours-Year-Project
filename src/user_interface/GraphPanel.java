@@ -2,6 +2,9 @@ package user_interface;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -16,6 +19,7 @@ final class GraphPanel extends JPanel {
 	private JLabel timestepLabel, currTimestampLabel, fnlTimestampLabel, virusNameLabel, virusProbLabel;
 	private JTable verticesTable;
 	private JScrollPane verticesSPane;
+	private static DateFormat df = new SimpleDateFormat("dd/MM/yy HH:mm:ss");
 	
 	GraphPanel() {
 		setLayout(new GridBagLayout());
@@ -65,12 +69,19 @@ final class GraphPanel extends JPanel {
 	}
 	
 	void updateCurrentTimestamp(Long timestamp) {
-		currTimestampLabel.setText("Current Timestamp: " + timestamp);
+
+		currTimestampLabel.setText("Current Timestamp: " + epochMilliToDate(timestamp));
 	}
 	
 	void updateFinalTimestamp(Long timestamp) {
-		fnlTimestampLabel.setText("Final Timestamp: " + timestamp);
-	} 
+		fnlTimestampLabel.setText("Final Timestamp: " + epochMilliToDate(timestamp));
+	}
+	
+	private String epochMilliToDate(Long timestamp) {
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTimeInMillis(timestamp);
+		return df.format(calendar.getTime());
+	}
 	
 	void updateVirus(String virusName) {
 		virusNameLabel.setText("Virus Name: " + virusName);

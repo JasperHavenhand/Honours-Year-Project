@@ -7,9 +7,14 @@ import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.text.DateFormat;
+import java.text.NumberFormat;
+import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
@@ -19,6 +24,7 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
+import javax.swing.JFormattedTextField;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -43,10 +49,10 @@ public final class EpidemicSimulator extends JFrame {
 	private int timestep;
 	private GraphPanel graphPanel;
 	
-	private JTextField mergeStart;
-	private JTextField mergeDuration;
-	private JTextField delayTime;
-	private JTextField tempLimit;
+	private JFormattedTextField mergeStart;
+	private JFormattedTextField mergeDuration;
+	private JFormattedTextField delayTime;
+	private JFormattedTextField tempLimit;
 	private JComboBox<String> deleteVertex1;
 	private JComboBox<String> deleteVertex2;
 	
@@ -54,7 +60,7 @@ public final class EpidemicSimulator extends JFrame {
 	private CardLayout newGraphCards;
 	private JComboBox<String> newGraphSource;
 	private JComboBox<String> newGraphVirus;
-	private JTextField newGraphIncrement;
+	private JFormattedTextField newGraphIncrement;
 	private JList<String> newGraphInfected;
 	
 	private JDialog newSourceDialog;
@@ -134,10 +140,10 @@ public final class EpidemicSimulator extends JFrame {
 		JLabel mergeLabel = new JLabel("Merge edges:");
 		constraintsPanel.add(mergeLabel);
 		
-		mergeStart = new JTextField();
+		mergeStart = new JFormattedTextField(NumberFormat.getNumberInstance());
 		constraintsPanel.add(mergeStart);
 		
-		mergeDuration = new JTextField();
+		mergeDuration = new JFormattedTextField(NumberFormat.getNumberInstance());
 		constraintsPanel.add(mergeDuration);
 		
 		JButton applyMergeBtn = new JButton("Apply");
@@ -148,7 +154,7 @@ public final class EpidemicSimulator extends JFrame {
 		JLabel delayLabel = new JLabel("Delay edges:");
 		constraintsPanel.add(delayLabel);
 		
-		delayTime = new JTextField();
+		delayTime = new JFormattedTextField(NumberFormat.getNumberInstance());
 		constraintsPanel.add(delayTime);
 		
 		constraintsPanel.add(new JPanel());
@@ -161,7 +167,7 @@ public final class EpidemicSimulator extends JFrame {
 		JLabel limitLabel = new JLabel("Set temporality limit:");
 		constraintsPanel.add(limitLabel);
 		
-		tempLimit = new JTextField();
+		tempLimit = new JFormattedTextField(NumberFormat.getNumberInstance());
 		constraintsPanel.add(tempLimit);
 		
 		constraintsPanel.add(new JPanel());
@@ -200,6 +206,7 @@ public final class EpidemicSimulator extends JFrame {
 			newGraphCards = new CardLayout();
 			newGraphDialog.getContentPane().setLayout(newGraphCards);
 			
+			// First Panel
 			JPanel panel1 = new JPanel();
 			panel1.setLayout(new GridBagLayout());
 			GridBagConstraints gbc = new GridBagConstraints();
@@ -230,7 +237,7 @@ public final class EpidemicSimulator extends JFrame {
 			gbc.gridy = 2;
 			gbc.gridx = 0;
 			panel1.add(new JLabel("Set increment between timesteps (in milliseconds):"),gbc);
-			newGraphIncrement = new JTextField();
+			newGraphIncrement = new JFormattedTextField(NumberFormat.getNumberInstance());
 			gbc.gridx = 1;
 			gbc.fill = GridBagConstraints.HORIZONTAL;
 			panel1.add(newGraphIncrement,gbc);
@@ -244,6 +251,7 @@ public final class EpidemicSimulator extends JFrame {
 			
 			newGraphDialog.add(panel1);
 			
+			// Second Panel
 			JPanel panel2 = new JPanel();
 			panel2.setLayout(new GridBagLayout());
 			
@@ -309,7 +317,7 @@ public final class EpidemicSimulator extends JFrame {
 			String dataSourcePath = DataSources.getInstance().get(dataSourceName);
 			String virusName = (String) newGraphVirus.getSelectedItem();
 			Double virusProb = Tokens.getInstance().get(virusName);
-			Long timeIncrement = Long.parseLong(newGraphIncrement.getText());
+			Long timeIncrement = (Long) newGraphIncrement.getValue();
 			
 			/* Temporarily holding the new TemporalGraphHandler in case the 
 			 * user decides to cancel creating the new graph. */
@@ -324,7 +332,7 @@ public final class EpidemicSimulator extends JFrame {
 			newGraphInfected.setModel(model);
 			
 			newGraphCards.next(newGraphDialog.getContentPane());
-			newGraphDialog.validate();
+			newGraphDialog.pack();
 			
 		} catch (NumberFormatException nfe) {
 			// Highlight that the time increment value is invalid.
@@ -460,6 +468,8 @@ public final class EpidemicSimulator extends JFrame {
 		newVirusDialog.setVisible(true);
 	}
 	
+	
+	
 	private void createNewVirus() {
 		try {
 			Double prob = Double.valueOf(newVirusProb.getText());
@@ -484,8 +494,8 @@ public final class EpidemicSimulator extends JFrame {
 	// --- Constraint Methods ---
 	private void applyMerge() {
 		try {
-		long startTime = Long.parseLong(mergeStart.getText());
-		long duration = Long.parseLong(mergeDuration.getText());
+		long startTime = (Long) mergeStart.getValue();
+		long duration = (Long) mergeDuration.getValue();
 		tgh.mergeEdges(startTime, duration);
 		}  catch (NumberFormatException nfe) {
 			// highlight that the times must be in milliseconds.
@@ -497,7 +507,7 @@ public final class EpidemicSimulator extends JFrame {
 	
 	private void applyDelay() {
 		try {
-			long time = Long.parseLong(delayTime.getText());
+			long time = (Long) delayTime.getValue();
 			tgh.delayEdges(time);
 		}  catch (NumberFormatException nfe) {
 			// highlight that the time must be in milliseconds.
@@ -509,7 +519,7 @@ public final class EpidemicSimulator extends JFrame {
 	
 	private void applyTempLimit() {
 		try {
-			int limit = Integer.parseInt(tempLimit.getText());
+			int limit = (int) tempLimit.getValue();
 			tgh.limitTemporality(limit);
 		}  catch (NumberFormatException nfe) {
 			// highlight that the limit must be an integer.
@@ -543,6 +553,7 @@ public final class EpidemicSimulator extends JFrame {
 			updateVerticesTable();
 		}
 	}
+	
 	
 	private void updateVerticesTable() {
 		try {
