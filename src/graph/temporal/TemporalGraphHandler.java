@@ -79,7 +79,7 @@ public final class TemporalGraphHandler {
 	/**
 	 * @return a mapping of each vertex name to the corresponding vertex ID.  
 	 */
-	public Map<String,String> getVertices() {
+	public Map<String,String> getVertexNamesToIDs() {
 		try {
 			Map<String,String> result = new HashMap<String,String>();
 			List<TemporalVertex> vertices = completeGraph.getVertices().collect();
@@ -96,8 +96,27 @@ public final class TemporalGraphHandler {
 	}
 	
 	/**
+	 * @return a mapping of each vertex ID to the corresponding vertex name.  
+	 */
+	public Map<String,String> getVertexIDsToNames() {
+		try {
+			Map<String,String> result = new HashMap<String,String>();
+			List<TemporalVertex> vertices = completeGraph.getVertices().collect();
+			Collections.sort(vertices,Comparator.comparing((TemporalVertex vertex) -> vertex.getId()));
+			for (TemporalVertex vertex: vertices) {
+				result.put(vertex.getId().toString(),vertex.getPropertyValue("name").getString());
+			}
+			return result;
+		} catch (Exception e) {
+			Log.getLog(LOG_NAME).writeException(e);
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	/**
 	 * @return The temporalities for each edge in the complete graph. 
-	 * Each edge is represented by the IDs of the vertices it intercepts with.
+	 * Each edge is represented by the IDs of the vertices it connects with.
 	 */
 	public List<Triple<String,String,Long>> getTemporalities() {
 		return Connectivity.temporalitiesOf(completeGraph);

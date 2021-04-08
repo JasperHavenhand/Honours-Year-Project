@@ -14,6 +14,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.swing.DefaultComboBoxModel;
@@ -29,10 +30,13 @@ import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
+import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.SpinnerDateModel;
 import javax.swing.SwingUtilities;
+import javax.swing.table.DefaultTableModel;
 
+import org.apache.commons.lang3.tuple.Triple;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.gradoop.temporal.model.impl.pojo.TemporalVertex;
 
@@ -156,7 +160,7 @@ public final class EpidemicSimulator extends JFrame {
 		gbc.gridx = 1;
 		gbc.fill = GridBagConstraints.HORIZONTAL;
 		mergeStart = new JSpinner(new SpinnerDateModel());
-		mergeStart.setEditor(new JSpinner.DateEditor(mergeStart, "dd/MM/yy HH:mm:ss.SSS"));
+		mergeStart.setEditor(new JSpinner.DateEditor(mergeStart, "dd/MM/yyyy HH:mm:ss.SSS"));
 		constraintsPanel.add(mergeStart,gbc);
 		
 		gbc.gridx = 2;
@@ -233,6 +237,22 @@ public final class EpidemicSimulator extends JFrame {
 		JButton applyDeleteBtn = new JButton("Apply");
 		applyDeleteBtn.addActionListener(new ButtonListener("applyDeleteBtn"));
 		constraintsPanel.add(applyDeleteBtn,gbc);
+		
+		// Calculate Temporalities
+		gbc.gridy = 5;
+		gbc.gridx = 0;
+		gbc.gridwidth = 2;
+		gbc.insets = new Insets(30,5,5,5);
+		JButton calcTempsBtn = new JButton("Calculate Temporalities");
+		calcTempsBtn.addActionListener(new ButtonListener("calcTempsBtn"));
+		constraintsPanel.add(calcTempsBtn,gbc);
+		
+		// Calculate Reachability Sets
+		gbc.gridx = 2;
+		JButton calcReachBtn = new JButton("Calculate Reachability Sets");
+		calcReachBtn.addActionListener(new ButtonListener("calcReachBtn"));
+		constraintsPanel.add(calcReachBtn,gbc);
+		gbc.gridwidth = 2;
 		
 		// Adding the constraints panel to the JFrame.
 		gbc.gridx = 2;
@@ -368,7 +388,7 @@ public final class EpidemicSimulator extends JFrame {
 					virusProb,timeIncrement);
 			
 			// Loading the vertices so that the user can select which will be initially infected.
-			Set<String> vertices = tghNew.getVertices().keySet();
+			Set<String> vertices = tghNew.getVertexNamesToIDs().keySet();
 			DefaultListModel<String> model = new DefaultListModel<String>();
 			model.addAll(vertices);
 			newGraphInfected.setModel(model);
@@ -393,7 +413,7 @@ public final class EpidemicSimulator extends JFrame {
 		// Updating the graph panel.
 		List<String> ids = new ArrayList<String>();
 		for (String name: newGraphInfected.getSelectedValuesList()) {
-			ids.add(tgh.getVertices().get(name));
+			ids.add(tgh.getVertexNamesToIDs().get(name));
 		}
 		tgh.giveTokenTo(ids);
 		graphPanel.updateVirus((String) newGraphVirus.getSelectedItem());
@@ -411,7 +431,7 @@ public final class EpidemicSimulator extends JFrame {
 		Date endDate = calendar.getTime();
 		mergeStart.setModel(new SpinnerDateModel(startDate,startDate,endDate,Calendar.MILLISECOND));
 		
-		Set<String> vertices = tgh.getVertices().keySet();
+		Set<String> vertices = tgh.getVertexNamesToIDs().keySet();
 		DefaultComboBoxModel<String> model1 = new DefaultComboBoxModel<String>();
 		DefaultComboBoxModel<String> model2 = new DefaultComboBoxModel<String>();
 		model1.addAll(vertices);
@@ -586,8 +606,8 @@ public final class EpidemicSimulator extends JFrame {
 	private void applyDelete() {
 		try {
 			if (deleteVertex1.getSelectedItem() != null && deleteVertex2.getSelectedItem() != null) {
-				String vertex1 = tgh.getVertices().get((String) deleteVertex1.getSelectedItem());
-				String vertex2 = tgh.getVertices().get((String) deleteVertex2.getSelectedItem());
+				String vertex1 = tgh.getVertexNamesToIDs().get((String) deleteVertex1.getSelectedItem());
+				String vertex2 = tgh.getVertexNamesToIDs().get((String) deleteVertex2.getSelectedItem());
 				tgh.deleteEdgeBetween(vertex1, vertex2);
 			}
 		}  catch (IllegalArgumentException iae) {
@@ -595,6 +615,77 @@ public final class EpidemicSimulator extends JFrame {
 		} catch (Exception e) {
 			Log.getLog(LOG_NAME).writeException(e);
 			e.printStackTrace();
+		}
+	}
+	
+	private void displayTemporalities() {
+		if (tgh != null) {
+			List<Triple<String, String, Long>> temps = tgh.getTemporalities();
+			Map<String, String> vertexNms = tgh.getVertexIDsToNames();
+			int size = temps.size();
+			Object[][] data = new Object[size][];
+			for (int i = 0; i < size; i++) {
+				Triple<String, String, Long> edge = temps.get(i);
+				data[i] = new Object[]{vertexNms.get(edge.getLeft()),vertexNms.get(edge.getMiddle()),edge.getRight()};
+			}
+			
+			String[] columns = new String[]{"first vertex","second vertex","temporality"};
+			JTable table = new JTable(data,columns);
+			table.getTableHeader().setReorderingAllowed(false);
+			table.setModel(new DefaultTableModel(data,columns){
+				private static final long serialVersionUID = -6939266935480600847L;
+				@Override
+			    public boolean isCellEditable(int row, int column) {
+			       return false;
+			    }
+			});
+			
+			JDialog dialog = new JDialog();
+//			dialog.add(new JLabel("The edges are specified by the vertices they exist between."));
+			dialog.add(new JScrollPane(table));
+			dialog.setTitle("Temporalities of Edges");
+			dialog.pack();
+			dialog.setVisible(true);
+		}
+	}
+	
+	private void displayReachabilitySets() {
+		if (tgh != null) {
+			tgh.getReachabilitySets();
+			List<Tuple2<String, List<String>>> reachSets = tgh.getReachabilitySets();
+			Map<String, String> vertexNms = tgh.getVertexIDsToNames();
+			int size = reachSets.size();
+			Object[][] data = new Object[size][];
+			
+			for (int i = 0; i < size; i++) {
+				Tuple2<String, List<String>> set = reachSets.get(i);
+				String[] line = new String[2];
+				line[0] = vertexNms.get(set.f0);
+				String reachableVertices = "";
+				for (String id: set.f1) {
+					reachableVertices += ", "+vertexNms.get(id);
+				}
+				
+				line[1] = reachableVertices.substring(2);
+				data[i] = line;
+			}
+			
+			String[] columns = new String[]{"origin vertex","reachable vertices"};
+			JTable table = new JTable(data,columns);
+			table.getTableHeader().setReorderingAllowed(false);
+			table.setModel(new DefaultTableModel(data,columns){
+				private static final long serialVersionUID = -6939266935480600847L;
+				@Override
+			    public boolean isCellEditable(int row, int column) {
+			       return false;
+			    }
+			});
+			
+			JDialog dialog = new JDialog();
+			dialog.add(new JScrollPane(table));
+			dialog.setTitle("Reachability Sets of Vertices");
+			dialog.pack();
+			dialog.setVisible(true);
 		}
 	}
 	
@@ -674,6 +765,12 @@ public final class EpidemicSimulator extends JFrame {
 					break;
 				case "createVirusBtn":
 					createNewVirus();
+					break;
+				case "calcTempsBtn":
+					displayTemporalities();
+					break;
+				case "calcReachBtn":
+					displayReachabilitySets();
 					break;
 			}
 		}

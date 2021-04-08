@@ -19,7 +19,7 @@ final class GraphPanel extends JPanel {
 	private JLabel timestepLabel, currTimestampLabel, fnlTimestampLabel, virusNameLabel, virusProbLabel;
 	private JTable verticesTable;
 	private JScrollPane verticesSPane;
-	private static DateFormat df = new SimpleDateFormat("dd/MM/yy HH:mm:ss.SSS");
+	private static DateFormat df = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss.SSS");
 	
 	GraphPanel() {
 		setLayout(new GridBagLayout());
@@ -47,10 +47,10 @@ final class GraphPanel extends JPanel {
 		add(virusProbLabel,gbc);
 		
 		String data[][] = {};
-		String column[] = {"vertex","Infected"};
-		verticesTable = new JTable(data,column);
+		String columns[] = {"vertex","Infected"};
+		verticesTable = new JTable(data,columns);
 		verticesTable.getTableHeader().setReorderingAllowed(false);
-		verticesTable.setModel(new DefaultTableModel(data,column){
+		verticesTable.setModel(new DefaultTableModel(data,columns){
 			private static final long serialVersionUID = 9110253115726752997L;
 			@Override
 		    public boolean isCellEditable(int row, int column) {
