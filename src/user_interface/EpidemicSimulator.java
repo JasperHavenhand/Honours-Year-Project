@@ -7,11 +7,9 @@ import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.text.DateFormat;
 import java.text.NumberFormat;
-import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -30,7 +28,9 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSpinner;
 import javax.swing.JTextField;
+import javax.swing.SpinnerDateModel;
 import javax.swing.SwingUtilities;
 
 import org.apache.flink.api.java.tuple.Tuple2;
@@ -49,7 +49,7 @@ public final class EpidemicSimulator extends JFrame {
 	private int timestep;
 	private GraphPanel graphPanel;
 	
-	private JFormattedTextField mergeStart;
+	private JSpinner mergeStart;
 	private JFormattedTextField mergeDuration;
 	private JFormattedTextField delayTime;
 	private JFormattedTextField tempLimit;
@@ -134,65 +134,107 @@ public final class EpidemicSimulator extends JFrame {
 	
 	private void createConstraintsPanel() {
 		JPanel constraintsPanel = new JPanel();
-		constraintsPanel.setLayout(new GridLayout(4,4,10,10));
-		
-		// Merge
-		JLabel mergeLabel = new JLabel("Merge edges:");
-		constraintsPanel.add(mergeLabel);
-		
-		mergeStart = new JFormattedTextField(NumberFormat.getNumberInstance());
-		constraintsPanel.add(mergeStart);
-		
-		mergeDuration = new JFormattedTextField(NumberFormat.getNumberInstance());
-		constraintsPanel.add(mergeDuration);
-		
-		JButton applyMergeBtn = new JButton("Apply");
-		applyMergeBtn.addActionListener(new ButtonListener("applyMergeBtn"));
-		constraintsPanel.add(applyMergeBtn);
-		
-		// Delay
-		JLabel delayLabel = new JLabel("Delay edges:");
-		constraintsPanel.add(delayLabel);
-		
-		delayTime = new JFormattedTextField(NumberFormat.getNumberInstance());
-		constraintsPanel.add(delayTime);
-		
-		constraintsPanel.add(new JPanel());
-		
-		JButton applyDelayBtn = new JButton("Apply");
-		applyDelayBtn.addActionListener(new ButtonListener("applyDelayBtn"));
-		constraintsPanel.add(applyDelayBtn);
-		
-		// Temporality Limit
-		JLabel limitLabel = new JLabel("Set temporality limit:");
-		constraintsPanel.add(limitLabel);
-		
-		tempLimit = new JFormattedTextField(NumberFormat.getNumberInstance());
-		constraintsPanel.add(tempLimit);
-		
-		constraintsPanel.add(new JPanel());
-		
-		JButton applyTempLimitBtn = new JButton("Apply");
-		applyTempLimitBtn.addActionListener(new ButtonListener("applyTempLimitBtn"));
-		constraintsPanel.add(applyTempLimitBtn);
-		
-		// Delete Edge
-		JLabel deleteLabel = new JLabel("Delete edge between:");
-		constraintsPanel.add(deleteLabel);
-		
-		deleteVertex1 = new JComboBox<String>();
-		deleteVertex1.setModel(new DefaultComboBoxModel<String>());
-		constraintsPanel.add(deleteVertex1);
-		
-		deleteVertex2 = new JComboBox<String>();
-		deleteVertex1.setModel(new DefaultComboBoxModel<String>());
-		constraintsPanel.add(deleteVertex2);
-		
-		JButton applyDeleteBtn = new JButton("Apply");
-		applyDeleteBtn.addActionListener(new ButtonListener("applyDeleteBtn"));
-		constraintsPanel.add(applyDeleteBtn);
+		constraintsPanel.setLayout(new GridBagLayout());
 		
 		GridBagConstraints gbc = new GridBagConstraints();
+		gbc.insets = new Insets(5,5,5,5);
+		
+		// Merge
+		gbc.gridy = 0;
+		gbc.gridx = 1;
+		gbc.anchor = GridBagConstraints.SOUTH;
+		constraintsPanel.add(new JLabel("start time"),gbc);
+		
+		gbc.gridx = 2;
+		constraintsPanel.add(new JLabel("duration (in milliseconds)"),gbc);
+		gbc.anchor = GridBagConstraints.CENTER;
+		
+		gbc.gridy = 1;
+		gbc.gridx = 0;
+		constraintsPanel.add(new JLabel("Merge edges:"),gbc);
+		
+		gbc.gridx = 1;
+		gbc.fill = GridBagConstraints.HORIZONTAL;
+		mergeStart = new JSpinner(new SpinnerDateModel());
+		mergeStart.setEditor(new JSpinner.DateEditor(mergeStart, "dd/MM/yy HH:mm:ss.SSS"));
+		constraintsPanel.add(mergeStart,gbc);
+		
+		gbc.gridx = 2;
+		mergeDuration = new JFormattedTextField(NumberFormat.getNumberInstance());
+		constraintsPanel.add(mergeDuration,gbc);
+		gbc.fill = GridBagConstraints.NONE;
+		
+		gbc.gridx = 3;
+		JButton applyMergeBtn = new JButton("Apply");
+		applyMergeBtn.addActionListener(new ButtonListener("applyMergeBtn"));
+		constraintsPanel.add(applyMergeBtn,gbc);
+		
+		// Delay
+		gbc.gridy = 2;
+		gbc.gridx = 0;
+		JLabel delayLabel = new JLabel("Delay edges by:");
+		constraintsPanel.add(delayLabel,gbc);
+		
+		gbc.gridx = 1;
+		gbc.fill = GridBagConstraints.HORIZONTAL;
+		delayTime = new JFormattedTextField(NumberFormat.getNumberInstance());
+		constraintsPanel.add(delayTime,gbc);
+		gbc.fill = GridBagConstraints.NONE;
+		
+		gbc.gridx = 2;
+		gbc.anchor = GridBagConstraints.WEST;
+		constraintsPanel.add(new JLabel("milliseconds"),gbc);
+		gbc.anchor = GridBagConstraints.CENTER;
+		
+		gbc.gridx = 3;
+		JButton applyDelayBtn = new JButton("Apply");
+		applyDelayBtn.addActionListener(new ButtonListener("applyDelayBtn"));
+		constraintsPanel.add(applyDelayBtn,gbc);
+		
+		// Temporality Limit
+		gbc.gridy = 3;
+		gbc.gridx = 0;
+		JLabel limitLabel = new JLabel("Set temporality limit to:");
+		constraintsPanel.add(limitLabel,gbc);
+		
+		gbc.gridx = 1;
+		gbc.fill = GridBagConstraints.HORIZONTAL;
+		tempLimit = new JFormattedTextField(NumberFormat.getNumberInstance());
+		constraintsPanel.add(tempLimit,gbc);
+		gbc.fill = GridBagConstraints.NONE;
+		
+		gbc.gridx = 2;
+		gbc.anchor = GridBagConstraints.WEST;
+		constraintsPanel.add(new JLabel("labels per edge"),gbc);
+		gbc.anchor = GridBagConstraints.CENTER;
+		
+		gbc.gridx = 3;
+		JButton applyTempLimitBtn = new JButton("Apply");
+		applyTempLimitBtn.addActionListener(new ButtonListener("applyTempLimitBtn"));
+		constraintsPanel.add(applyTempLimitBtn,gbc);
+		
+		// Delete Edge
+		gbc.gridy = 4;
+		gbc.gridx = 0;
+		JLabel deleteLabel = new JLabel("Delete edge between:");
+		constraintsPanel.add(deleteLabel,gbc);
+		
+		gbc.gridx = 1;
+		deleteVertex1 = new JComboBox<String>();
+		deleteVertex1.setModel(new DefaultComboBoxModel<String>());
+		constraintsPanel.add(deleteVertex1,gbc);
+		
+		gbc.gridx = 2;
+		deleteVertex2 = new JComboBox<String>();
+		deleteVertex1.setModel(new DefaultComboBoxModel<String>());
+		constraintsPanel.add(deleteVertex2,gbc);
+		
+		gbc.gridx = 3;
+		JButton applyDeleteBtn = new JButton("Apply");
+		applyDeleteBtn.addActionListener(new ButtonListener("applyDeleteBtn"));
+		constraintsPanel.add(applyDeleteBtn,gbc);
+		
+		// Adding the constraints panel to the JFrame.
 		gbc.gridx = 2;
 		gbc.gridy = 0;
 		gbc.insets = new Insets(0,0,0,5);
@@ -361,7 +403,14 @@ public final class EpidemicSimulator extends JFrame {
 		graphPanel.updateCurrentTimestamp(tgh.getCurrentTimestamp());
 		graphPanel.updateFinalTimestamp(tgh.getFinalTimestamp());
 		
-		// Updating the constraints panel. 
+		// Updating the constraints panel.
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTimeInMillis(tgh.getCurrentTimestamp());
+		Date startDate = calendar.getTime();
+		calendar.setTimeInMillis(tgh.getFinalTimestamp());
+		Date endDate = calendar.getTime();
+		mergeStart.setModel(new SpinnerDateModel(startDate,startDate,endDate,Calendar.MILLISECOND));
+		
 		Set<String> vertices = tgh.getVertices().keySet();
 		DefaultComboBoxModel<String> model1 = new DefaultComboBoxModel<String>();
 		DefaultComboBoxModel<String> model2 = new DefaultComboBoxModel<String>();
@@ -468,21 +517,20 @@ public final class EpidemicSimulator extends JFrame {
 		newVirusDialog.setVisible(true);
 	}
 	
-	
-	
 	private void createNewVirus() {
 		try {
 			Double prob = Double.valueOf(newVirusProb.getText());
 			if (prob < 0.0 || prob > 1.0) {
 				//must be in the range 0.0 to 1.0
+			} else {
+				String name = newVirusName.getText();
+				Tokens.getInstance().set(name, prob);
+				newVirusDialog.setVisible(false);
+				newVirusName.setText("");
+				newVirusProb.setText("");
+				refreshNewGraphVirus();
+				newGraphVirus.setSelectedItem(name);
 			}
-			String name = newVirusName.getText();
-			Tokens.getInstance().set(name, prob);
-			newVirusDialog.setVisible(false);
-			newVirusName.setText("");
-			newVirusProb.setText("");
-			refreshNewGraphVirus();
-			newGraphVirus.setSelectedItem(name);
 		} catch (NumberFormatException nfe) {
 			// highlight that the probability must be a number
 		} catch (Exception e) {
@@ -494,9 +542,11 @@ public final class EpidemicSimulator extends JFrame {
 	// --- Constraint Methods ---
 	private void applyMerge() {
 		try {
-		long startTime = (Long) mergeStart.getValue();
-		long duration = (Long) mergeDuration.getValue();
-		tgh.mergeEdges(startTime, duration);
+			if (tgh != null) {
+				long startTime = ((Date) mergeStart.getValue()).toInstant().toEpochMilli();
+				long duration = (Long) mergeDuration.getValue();
+				tgh.mergeEdges(startTime, duration);
+			}
 		}  catch (NumberFormatException nfe) {
 			// highlight that the times must be in milliseconds.
 		} catch (Exception e) {
@@ -507,8 +557,10 @@ public final class EpidemicSimulator extends JFrame {
 	
 	private void applyDelay() {
 		try {
-			long time = (Long) delayTime.getValue();
-			tgh.delayEdges(time);
+			if (delayTime.getValue() != null) {
+				long time = (Long) delayTime.getValue();
+				tgh.delayEdges(time);
+			}
 		}  catch (NumberFormatException nfe) {
 			// highlight that the time must be in milliseconds.
 		} catch (Exception e) {
@@ -519,8 +571,10 @@ public final class EpidemicSimulator extends JFrame {
 	
 	private void applyTempLimit() {
 		try {
-			int limit = (int) tempLimit.getValue();
-			tgh.limitTemporality(limit);
+			if (tempLimit.getValue() != null) {
+				int limit = (int) tempLimit.getValue();
+				tgh.limitTemporality(limit);
+			}
 		}  catch (NumberFormatException nfe) {
 			// highlight that the limit must be an integer.
 		} catch (Exception e) {

@@ -19,7 +19,7 @@ final class GraphPanel extends JPanel {
 	private JLabel timestepLabel, currTimestampLabel, fnlTimestampLabel, virusNameLabel, virusProbLabel;
 	private JTable verticesTable;
 	private JScrollPane verticesSPane;
-	private static DateFormat df = new SimpleDateFormat("dd/MM/yy HH:mm:ss");
+	private static DateFormat df = new SimpleDateFormat("dd/MM/yy HH:mm:ss.SSS");
 	
 	GraphPanel() {
 		setLayout(new GridBagLayout());
