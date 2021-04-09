@@ -27,6 +27,7 @@ import javax.swing.JFormattedTextField;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
@@ -375,29 +376,53 @@ public final class EpidemicSimulator extends JFrame {
 	 * to select the initially infected ones. */
 	private void createNewGraph() {
 		try {
-			String dataSourceName = (String) newGraphSource.getSelectedItem();
-			String dataSourcePath = DataSources.getInstance().get(dataSourceName);
-			String virusName = (String) newGraphVirus.getSelectedItem();
-			Double virusProb = Tokens.getInstance().get(virusName);
-			Long timeIncrement = (Long) newGraphIncrement.getValue();
+			Boolean error = false;
+			List<String> errorMsgs = new ArrayList<String>(3);
+			if (newGraphSource.getSelectedItem() == null) {
+				error = true;
+				errorMsgs.add("A data source is required.");
+			}
+			if (newGraphVirus.getSelectedItem() == null) {
+				error = true;
+				errorMsgs.add("A virus is required.");
+			}
+			if (newGraphIncrement.getValue() == null) {
+				error = true;
+				errorMsgs.add("A time increment is required.");
+			} else if ((Long) newGraphIncrement.getValue() <= 0) {
+				error = true;
+				errorMsgs.add("The time increment must be positive and non-zero.");
+			}
 			
-			/* Temporarily holding the new TemporalGraphHandler in case the 
-			 * user decides to cancel creating the new graph. */
-			tghNew = new TemporalGraphHandler(
-					TemporalDataFactory.loadCSVDataSource(dataSourcePath).getTemporalGraph(),
-					virusProb,timeIncrement);
-			
-			// Loading the vertices so that the user can select which will be initially infected.
-			Set<String> vertices = tghNew.getVertexNamesToIDs().keySet();
-			DefaultListModel<String> model = new DefaultListModel<String>();
-			model.addAll(vertices);
-			newGraphInfected.setModel(model);
-			
-			newGraphCards.next(newGraphDialog.getContentPane());
-			newGraphDialog.pack();
-			
-		} catch (NumberFormatException nfe) {
+			if (error) {
+				showErrorMsgs(errorMsgs);
+			} else {
+				String dataSourceName = (String) newGraphSource.getSelectedItem();
+				String dataSourcePath = DataSources.getInstance().get(dataSourceName);
+				String virusName = (String) newGraphVirus.getSelectedItem();
+				Double virusProb = Tokens.getInstance().get(virusName);
+				Long timeIncrement = (Long) newGraphIncrement.getValue();
+				
+				/* Temporarily holding the new TemporalGraphHandler in case the 
+				 * user decides to cancel creating the new graph. */
+				tghNew = new TemporalGraphHandler(
+						TemporalDataFactory.loadCSVDataSource(dataSourcePath).getTemporalGraph(),
+						virusProb,timeIncrement);
+				
+				// Loading the vertices so that the user can select which will be initially infected.
+				Set<String> vertices = tghNew.getVertexNamesToIDs().keySet();
+				DefaultListModel<String> model = new DefaultListModel<String>();
+				model.addAll(vertices);
+				newGraphInfected.setModel(model);
+				
+				newGraphCards.next(newGraphDialog.getContentPane());
+				newGraphDialog.pack();
+			}
+		} catch (ClassCastException e) {
 			// Highlight that the time increment value is invalid.
+			List<String> list = new ArrayList<String>();
+			list.add("The time increment must be a whole number.");
+			showErrorMsgs(list);
 		} catch (Exception e) {
 			Log.getLog(LOG_NAME).writeException(e);
 			e.printStackTrace();
@@ -699,7 +724,6 @@ public final class EpidemicSimulator extends JFrame {
 		}
 	}
 	
-	
 	private void updateVerticesTable() {
 		try {
 			List<TemporalVertex> vertices = tgh.getCompleteGraph().getVertices().collect();
@@ -715,6 +739,15 @@ public final class EpidemicSimulator extends JFrame {
 			Log.getLog(LOG_NAME).writeException(e);
 			e.printStackTrace();
 		}
+	}
+	
+	// --- Error Message Method ---
+	private void showErrorMsgs(List<String> errorMsgs) {
+		String text = "";
+		for (String msg: errorMsgs) {
+			text += "\n" + msg; 
+		}
+		JOptionPane.showMessageDialog(this, text.trim(), "", JOptionPane.ERROR_MESSAGE);
 	}
 	
 	private class ButtonListener implements ActionListener {
