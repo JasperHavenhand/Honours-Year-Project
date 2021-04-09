@@ -71,42 +71,47 @@ public final class TemporalDataFactory {
 	 * @return TemporalCSVDataSource
 	 */
 	public static TemporalCSVDataSource createCSVDataSource(String inputPath, inputType inputType, String sourceName) throws NullPointerException {
-		
-		if (inputPath == null || inputPath.length() == 0) {
-			throw new NullPointerException("The input path is required.");
-		} 
-		if (inputType == null) {
-			throw new NullPointerException("The input type is required.");
-		}
-		if (sourceName == null || sourceName.length() == 0) {
-			throw new NullPointerException("The source name is required.");
-		}
-		
-		TemporalDataSource temporalData = null;
-		switch(inputType) {
-			case NSENSE:
-				temporalData = new NSenseDataSource(inputPath);
-				break;
-				
-			default:
-				Log.getLog(LOG_NAME).writeError("Data input type not known:" +inputType);
-				break;
-		}
-		
-		if (temporalData != null) {
-			// Creating the folder for the CSV files that will be used for the CSVDataSource.
-			String dataFolder = Configuration.getInstance().getProperty("dataFolder") + File.separator + sourceName;
-			new File(dataFolder).mkdirs();
+		try {
+			if (inputPath == null || inputPath.length() == 0) {
+				throw new NullPointerException("The input path is required.");
+			} 
+			if (inputType == null) {
+				throw new NullPointerException("The input type is required.");
+			}
+			if (sourceName == null || sourceName.length() == 0) {
+				throw new NullPointerException("The source name is required.");
+			}
 			
-			createCSVFile(dataFolder, "graphs", temporalData.getGraphs());
-			createCSVFile(dataFolder, "vertices", temporalData.getVertices());
-			createCSVFile(dataFolder, "edges", temporalData.getEdges());
-			createCSVFile(dataFolder, "metadata", temporalData.getMetadata());
-	
-			return getCSVDataSource(dataFolder);
-		}
+			TemporalDataSource temporalData = null;
+			switch(inputType) {
+				case NSENSE:
+					temporalData = new NSenseDataSource(inputPath);
+					break;
+					
+				default:
+					Log.getLog(LOG_NAME).writeError("Data input type not known:" +inputType);
+					break;
+			}
+			
+			if (temporalData != null) {
+				// Creating the folder for the CSV files that will be used for the CSVDataSource.
+				String dataFolder = Configuration.getInstance().getProperty("dataFolder") + File.separator + sourceName;
+				new File(dataFolder).mkdirs();
+				
+				createCSVFile(dataFolder, "graphs", temporalData.getGraphs());
+				createCSVFile(dataFolder, "vertices", temporalData.getVertices());
+				createCSVFile(dataFolder, "edges", temporalData.getEdges());
+				createCSVFile(dataFolder, "metadata", temporalData.getMetadata());
 		
-		return null;
+				return getCSVDataSource(dataFolder);
+			}
+			
+			return null;
+		} catch (Exception e) {
+			Log.getLog(LOG_NAME).writeException(e);
+			e.printStackTrace();
+			return null;
+		}
 	}
 	
 	private static TemporalCSVDataSource getCSVDataSource(String path) {

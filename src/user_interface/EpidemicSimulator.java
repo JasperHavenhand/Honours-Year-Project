@@ -395,7 +395,7 @@ public final class EpidemicSimulator extends JFrame {
 			}
 			
 			if (error) {
-				showErrorMsgs(errorMsgs);
+				showErrorMsg(errorMsgs);
 			} else {
 				String dataSourceName = (String) newGraphSource.getSelectedItem();
 				String dataSourcePath = DataSources.getInstance().get(dataSourceName);
@@ -419,10 +419,7 @@ public final class EpidemicSimulator extends JFrame {
 				newGraphDialog.pack();
 			}
 		} catch (ClassCastException e) {
-			// Highlight that the time increment value is invalid.
-			List<String> list = new ArrayList<String>();
-			list.add("The time increment must be a whole number.");
-			showErrorMsgs(list);
+			showErrorMsg("The time increment must be a whole number.");
 		} catch (Exception e) {
 			Log.getLog(LOG_NAME).writeException(e);
 			e.printStackTrace();
@@ -519,18 +516,44 @@ public final class EpidemicSimulator extends JFrame {
 	
 	private void createNewSource() {
 		try {
-			String inputPath = newSourcePath.getText();
-			inputType inputType = data.temporal.TemporalDataFactory.inputType.valueOf((String) newSourceInputType.getSelectedItem());
 			String sourceName = newSourceName.getText();
-			if (TemporalDataFactory.createCSVDataSource(inputPath, inputType, sourceName) == null) {
-				//highlight that inputPath is invalid.
-			} else {
-				newSourceDialog.setVisible(false);
-				newSourceName.setText("");
-				newSourcePath.setText("");
-				refreshNewGraphSource();
-				newGraphSource.setSelectedItem(sourceName);
+			String inputPath = newSourcePath.getText();
+			inputType inputType = null;
+			
+			Boolean error = false;
+			List<String> errorMsgs = new ArrayList<String>(3);
+			if (sourceName.length() == 0) {
+				error = true;
+				errorMsgs.add("A name is required.");
+			} else if (DataSources.getInstance().get(sourceName) != null) {
+				error = true;
+				errorMsgs.add("A data source already exists with that name.");
 			}
+			if (inputPath.length() == 0) {
+				error = true;
+				errorMsgs.add("An input data location is required.");
+			}
+			try {
+				inputType = TemporalDataFactory.inputType.valueOf((String) newSourceInputType.getSelectedItem());
+			} catch (Exception e) {
+				error = true;
+				errorMsgs.add("Invalid input type.");
+			}
+			
+			if (error) {
+				showErrorMsg(errorMsgs);
+			} else {
+				if (TemporalDataFactory.createCSVDataSource(inputPath, inputType, sourceName) == null) {
+					showErrorMsg("The input data location is invalid.");
+				} else {
+					newSourceDialog.setVisible(false);
+					newSourceName.setText("");
+					newSourcePath.setText("");
+					refreshNewGraphSource();
+					newGraphSource.setSelectedItem(sourceName);
+				}
+			}
+
 		} catch (Exception e) {
 			Log.getLog(LOG_NAME).writeException(e);
 			e.printStackTrace();
@@ -742,10 +765,15 @@ public final class EpidemicSimulator extends JFrame {
 	}
 	
 	// --- Error Message Method ---
-	private void showErrorMsgs(List<String> errorMsgs) {
+	private void showErrorMsg(String error) {
+		List<String> list = new ArrayList<String>();
+		list.add(error);
+		showErrorMsg(error);
+	}
+	private void showErrorMsg(List<String> errors) {
 		String text = "";
-		for (String msg: errorMsgs) {
-			text += "\n" + msg; 
+		for (String e: errors) {
+			text += "\n" + e; 
 		}
 		JOptionPane.showMessageDialog(this, text.trim(), "", JOptionPane.ERROR_MESSAGE);
 	}
