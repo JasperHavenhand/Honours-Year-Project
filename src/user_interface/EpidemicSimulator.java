@@ -31,6 +31,8 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
+import javax.swing.JSpinner.DateEditor;
+import javax.swing.JSpinner.DefaultEditor;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.SpinnerDateModel;
@@ -161,7 +163,7 @@ public final class EpidemicSimulator extends JFrame {
 		gbc.gridx = 1;
 		gbc.fill = GridBagConstraints.HORIZONTAL;
 		mergeStart = new JSpinner(new SpinnerDateModel());
-		mergeStart.setEditor(new JSpinner.DateEditor(mergeStart, "dd/MM/yyyy HH:mm:ss.SSS"));
+		mergeStart.setEditor(new DateEditor(mergeStart, "dd/MM/yyyy HH:mm:ss.SSS"));
 		constraintsPanel.add(mergeStart,gbc);
 		
 		gbc.gridx = 2;
@@ -395,7 +397,7 @@ public final class EpidemicSimulator extends JFrame {
 			}
 			
 			if (error) {
-				showErrorMsg(errorMsgs);
+				showErrorDialog(errorMsgs);
 			} else {
 				String dataSourceName = (String) newGraphSource.getSelectedItem();
 				String dataSourcePath = DataSources.getInstance().get(dataSourceName);
@@ -419,7 +421,7 @@ public final class EpidemicSimulator extends JFrame {
 				newGraphDialog.pack();
 			}
 		} catch (ClassCastException e) {
-			showErrorMsg("The time increment must be a whole number.");
+			showErrorDialog("The time increment must be a whole number.");
 		} catch (Exception e) {
 			Log.getLog(LOG_NAME).writeException(e);
 			e.printStackTrace();
@@ -452,6 +454,8 @@ public final class EpidemicSimulator extends JFrame {
 		calendar.setTimeInMillis(tgh.getFinalTimestamp());
 		Date endDate = calendar.getTime();
 		mergeStart.setModel(new SpinnerDateModel(startDate,startDate,endDate,Calendar.MILLISECOND));
+		mergeStart.setEditor(new JSpinner.DateEditor(mergeStart, "dd/MM/yyyy HH:mm:ss.SSS"));
+		((DefaultEditor) mergeStart.getEditor()).getTextField().setColumns(0);
 		
 		Set<String> vertices = tgh.getVertexNamesToIDs().keySet();
 		DefaultComboBoxModel<String> model1 = new DefaultComboBoxModel<String>();
@@ -541,10 +545,10 @@ public final class EpidemicSimulator extends JFrame {
 			}
 			
 			if (error) {
-				showErrorMsg(errorMsgs);
+				showErrorDialog(errorMsgs);
 			} else {
 				if (TemporalDataFactory.createCSVDataSource(inputPath, inputType, sourceName) == null) {
-					showErrorMsg("The input data location is invalid.");
+					showErrorDialog("The input data location is invalid.");
 				} else {
 					newSourceDialog.setVisible(false);
 					newSourceName.setText("");
@@ -587,20 +591,39 @@ public final class EpidemicSimulator extends JFrame {
 	
 	private void createNewVirus() {
 		try {
-			Double prob = Double.valueOf(newVirusProb.getText());
-			if (prob < 0.0 || prob > 1.0) {
-				//must be in the range 0.0 to 1.0
+			List<String> errorMsgs = new ArrayList<String>(2);
+			Boolean error = false;
+			if (newVirusProb.getText().length() == 0) {
+				error = true;
+				errorMsgs.add("A probability is required.");
+			}
+			if (newVirusName.getText().length() == 0) {
+				error = true;
+				errorMsgs.add("A name is required.");
+			}
+
+			if (error) {
+				showErrorDialog(errorMsgs);
 			} else {
-				String name = newVirusName.getText();
-				Tokens.getInstance().set(name, prob);
-				newVirusDialog.setVisible(false);
-				newVirusName.setText("");
-				newVirusProb.setText("");
-				refreshNewGraphVirus();
-				newGraphVirus.setSelectedItem(name);
+				Double prob = Double.valueOf(newVirusProb.getText());
+				if (prob < 0.0 || prob > 1.0) {
+					showErrorDialog("The probability must in the range 0 to 1.");
+				} else {
+					String name = newVirusName.getText();
+					int i = showConfirmDialog("A virus already exists with this name,"
+							+ " do you want to overwrite it?");
+					if (i == JOptionPane.YES_OPTION) {
+						Tokens.getInstance().set(name, prob);
+						newVirusDialog.setVisible(false);
+						newVirusName.setText("");
+						newVirusProb.setText("");
+						refreshNewGraphVirus();
+						newGraphVirus.setSelectedItem(name);
+					}
+				}
 			}
 		} catch (NumberFormatException nfe) {
-			// highlight that the probability must be a number
+			showErrorDialog("The probability must a number in the range 0 to 1.");
 		} catch (Exception e) {
 			Log.getLog(LOG_NAME).writeException(e);
 			e.printStackTrace();
@@ -611,12 +634,27 @@ public final class EpidemicSimulator extends JFrame {
 	private void applyMerge() {
 		try {
 			if (tgh != null) {
-				long startTime = ((Date) mergeStart.getValue()).toInstant().toEpochMilli();
-				long duration = (Long) mergeDuration.getValue();
-				tgh.mergeEdges(startTime, duration);
+				List<String> errorMsgs = new ArrayList<String>(2);
+				Boolean error = false;
+				if (mergeStart.getValue() == null) {
+					error = true;
+					errorMsgs.add("A start time is required.");
+				}
+				if (mergeDuration.getValue() == null) {
+					error = true;
+					errorMsgs.add("A duration is required.");
+				}
+				
+				if (error) {
+					showErrorDialog(errorMsgs);
+				} else {
+					long startTime = ((Date) mergeStart.getValue()).toInstant().toEpochMilli();
+					long duration = (Long) mergeDuration.getValue();
+					tgh.mergeEdges(startTime, duration);
+				}
 			}
 		}  catch (NumberFormatException nfe) {
-			// highlight that the times must be in milliseconds.
+			showErrorDialog("The duration must be in milliseconds.");
 		} catch (Exception e) {
 			Log.getLog(LOG_NAME).writeException(e);
 			e.printStackTrace();
@@ -625,12 +663,16 @@ public final class EpidemicSimulator extends JFrame {
 	
 	private void applyDelay() {
 		try {
-			if (delayTime.getValue() != null) {
-				long time = (Long) delayTime.getValue();
-				tgh.delayEdges(time);
+			if (tgh != null) {
+				if (delayTime.getValue() != null) {
+					long time = (Long) delayTime.getValue();
+					tgh.delayEdges(time);
+				} else {
+					showErrorDialog("A time amount is required.");
+				}
 			}
 		}  catch (NumberFormatException nfe) {
-			// highlight that the time must be in milliseconds.
+			showErrorDialog("The time amount must be in milliseconds.");
 		} catch (Exception e) {
 			Log.getLog(LOG_NAME).writeException(e);
 			e.printStackTrace();
@@ -639,12 +681,16 @@ public final class EpidemicSimulator extends JFrame {
 	
 	private void applyTempLimit() {
 		try {
-			if (tempLimit.getValue() != null) {
-				int limit = (int) tempLimit.getValue();
-				tgh.limitTemporality(limit);
+			if (tgh != null) {
+				if (tempLimit.getValue() != null) {
+					int limit = (int) tempLimit.getValue();
+					tgh.limitTemporality(limit);
+				} else {
+					showErrorDialog("A limit is required.");
+				}
 			}
 		}  catch (NumberFormatException nfe) {
-			// highlight that the limit must be an integer.
+			showErrorDialog("The limit must be an integer.");
 		} catch (Exception e) {
 			Log.getLog(LOG_NAME).writeException(e);
 			e.printStackTrace();
@@ -658,8 +704,6 @@ public final class EpidemicSimulator extends JFrame {
 				String vertex2 = tgh.getVertexNamesToIDs().get((String) deleteVertex2.getSelectedItem());
 				tgh.deleteEdgeBetween(vertex1, vertex2);
 			}
-		}  catch (IllegalArgumentException iae) {
-			// highlight that the limit must be a hexadecimal.
 		} catch (Exception e) {
 			Log.getLog(LOG_NAME).writeException(e);
 			e.printStackTrace();
@@ -764,18 +808,26 @@ public final class EpidemicSimulator extends JFrame {
 		}
 	}
 	
-	// --- Error Message Method ---
-	private void showErrorMsg(String error) {
+	// --- Dialog Methods ---
+	private void showErrorDialog(String message) {
 		List<String> list = new ArrayList<String>();
-		list.add(error);
-		showErrorMsg(error);
+		list.add(message);
+		showErrorDialog(list);
 	}
-	private void showErrorMsg(List<String> errors) {
+	
+	private void showErrorDialog(List<String> messages) {
 		String text = "";
-		for (String e: errors) {
-			text += "\n" + e; 
+		for (String m: messages) {
+			text += "\n" + m; 
 		}
-		JOptionPane.showMessageDialog(this, text.trim(), "", JOptionPane.ERROR_MESSAGE);
+		JOptionPane.showMessageDialog(this, text.trim(),
+				"", JOptionPane.ERROR_MESSAGE);
+	}
+	
+	private int showConfirmDialog(String message) {
+		return JOptionPane.showConfirmDialog(this,
+			    message,
+			    "",JOptionPane.YES_NO_OPTION);
 	}
 	
 	private class ButtonListener implements ActionListener {
