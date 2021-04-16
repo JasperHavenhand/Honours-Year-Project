@@ -161,11 +161,11 @@ public final class TemporalGraphHandler {
 	/**
 	 * Deletes the edge between the specified pair of vertices.
 	 * @param graph The graph containing the pair of vertices.
-	 * @param vertex1 The id of the first vertex.
-	 * @param vertex2 The id of the second vertex.
+	 * @param vertex1Id The id of the first vertex.
+	 * @param vertex2Id The id of the second vertex.
 	 */
-	public void deleteEdgeBetween(String vertex1, String vertex2) {
-		completeGraph = Connectivity.deleteEdgeBetween(completeGraph, vertex1, vertex2);
+	public void deleteEdgeBetween(String vertex1Id, String vertex2Id) {
+		completeGraph = Connectivity.deleteEdgeBetween(completeGraph, vertex1Id, vertex2Id);
 		currentGraph = completeGraph.snapshot(new AsOf(currentTimestamp));
 	}
 	
@@ -207,16 +207,16 @@ public final class TemporalGraphHandler {
 	 * A method for disseminating a token within a graph.
 	 * @param graph The graph to operate on.
 	 * @param tokenTransferProb The probability of each possible token transfer occurring.
-	 * @param vertices The IDs of the vertices in the current version of the graph which either have
+	 * @param vertexIds The IDs of the vertices in the current version of the graph which either have
 	 *  the token or have an immediate neighbour that does (i.e. the ones that might next receive the token).
 	 * @return Updated TemporalGraph.
 	 */
-	private TemporalGraph disseminate(TemporalGraph graph, double tokenTransferProb, List<String> vertices) {
+	private TemporalGraph disseminate(TemporalGraph graph, double tokenTransferProb, List<String> vertexIds) {
 		try {
 			Random random = new Random();
 			List<TemporalVertex> vertexList = graph.getVertices().collect();
 			for (TemporalVertex v: vertexList) {
-				if (vertices.contains(v.getId().toString()) && !v.getPropertyValue(TOKEN_NAME).getBoolean() 
+				if (vertexIds.contains(v.getId().toString()) && !v.getPropertyValue(TOKEN_NAME).getBoolean() 
 						&& (random.nextDouble() < tokenTransferProb)) {
 					v.setProperty(TOKEN_NAME, true);
 				}
@@ -243,16 +243,16 @@ public final class TemporalGraphHandler {
 	
 	/**
 	 * Sets the token to true for the vertices with the given IDs.
-	 * @param vertices The IDs of the target vertices.
+	 * @param vertexIds The IDs of the target vertices.
 	 */
-	public void giveTokenTo(List<String> vertices) {
-		completeGraph = giveTokenTo(completeGraph, vertices);
+	public void giveTokenTo(List<String> vertexIds) {
+		completeGraph = giveTokenTo(completeGraph, vertexIds);
 		currentGraph = completeGraph.snapshot(new AsOf(currentTimestamp));
 	}
 	
-	private TemporalGraph giveTokenTo(TemporalGraph graph, List<String> vertices) {
+	private TemporalGraph giveTokenTo(TemporalGraph graph, List<String> vertexIds) {
 		TemporalGraph newGraph = graph.transformVertices((TemporalVertex v, TemporalVertex v2) -> {
-			if (vertices.contains(v.getId().toString())) {
+			if (vertexIds.contains(v.getId().toString())) {
 				v.setProperty(TOKEN_NAME, true);
 			}
 			return v;

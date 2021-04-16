@@ -149,6 +149,7 @@ public final class EpidemicSimulator extends JFrame {
 		// Merge
 		gbc.gridy = 0;
 		gbc.gridx = 1;
+		gbc.insets = new Insets(5,5,0,5);
 		gbc.anchor = GridBagConstraints.SOUTH;
 		constraintsPanel.add(new JLabel("start time"),gbc);
 		
@@ -158,10 +159,12 @@ public final class EpidemicSimulator extends JFrame {
 		
 		gbc.gridy = 1;
 		gbc.gridx = 0;
+		gbc.insets = new Insets(5,5,5,5);
 		constraintsPanel.add(new JLabel("Merge edges:"),gbc);
 		
 		gbc.gridx = 1;
 		gbc.fill = GridBagConstraints.HORIZONTAL;
+		gbc.insets = new Insets(0,5,5,5);
 		mergeStart = new JSpinner(new SpinnerDateModel());
 		mergeStart.setEditor(new DateEditor(mergeStart, "dd/MM/yyyy HH:mm:ss.SSS"));
 		constraintsPanel.add(mergeStart,gbc);
@@ -172,6 +175,7 @@ public final class EpidemicSimulator extends JFrame {
 		gbc.fill = GridBagConstraints.NONE;
 		
 		gbc.gridx = 3;
+		gbc.insets = new Insets(5,5,5,5);
 		JButton applyMergeBtn = new JButton("Apply");
 		applyMergeBtn.addActionListener(new ButtonListener("applyMergeBtn"));
 		constraintsPanel.add(applyMergeBtn,gbc);
