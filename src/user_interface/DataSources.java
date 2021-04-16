@@ -75,20 +75,6 @@ final class DataSources {
 			return null;
 		}
 	}
-
-//	/**
-//	 * Creates a data source from the data at the specified location.
-//	 * @param name The name to be given to the new data source.
-//	 * @param absolutePath The absolute path to the data to be converted.
-//	 */
-//	void create(String name, String absolutePath) {
-//		try {
-//			
-//		} catch (Exception e) {
-//			Log.getLog(LOG_NAME).writeException(e);
-//			e.printStackTrace();
-//		}
-//	}
 	
 }
 
