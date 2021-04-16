@@ -45,7 +45,7 @@ class Connectivity {
 		}
 	}
 	
-	static List<GradoopId> findReachableVertices(TemporalGraph graph, GradoopId source) {
+	private static List<GradoopId> findReachableVertices(TemporalGraph graph, GradoopId source) {
 		List<GradoopId> visited = new ArrayList<GradoopId>();
 		visited.add(source);
 		return findReachableVertices(graph, source, visited, null);

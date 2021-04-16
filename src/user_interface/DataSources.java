@@ -24,7 +24,7 @@ final class DataSources {
 	 * Lazy initialisation of DataSources.
 	 * @return instance of DataSources.
 	 */
-	public static synchronized DataSources getInstance() {
+	static synchronized DataSources getInstance() {
 		if (instance == null) {
 			instance = new DataSources();
 		}
