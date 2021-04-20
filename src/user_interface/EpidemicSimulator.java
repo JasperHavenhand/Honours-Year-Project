@@ -352,14 +352,16 @@ public final class EpidemicSimulator extends JFrame {
 		if (newGraphSource == null) {
 			newGraphSource = new JComboBox<String>();
 		}
-		List<Tuple2<String, String>> sources = DataSources.getInstance().getAll();
-		List<String> sourceNames = new ArrayList<String>();
 		DefaultComboBoxModel<String> model = (DefaultComboBoxModel<String>) newGraphSource.getModel();
-		model.removeAllElements();
-		for (Tuple2<String, String> s: sources) {
-			sourceNames.add(s.f0); 
+		List<Tuple2<String, String>> sources = DataSources.getInstance().getAll();
+		if (sources != null) {
+			List<String> sourceNames = new ArrayList<String>();
+			model.removeAllElements();
+			for (Tuple2<String, String> s: sources) {
+				sourceNames.add(s.f0); 
+			}
+			model.addAll(sourceNames);
 		}
-		model.addAll(sourceNames);
 		newGraphSource.setModel(model);
 	}
 	
@@ -614,8 +616,12 @@ public final class EpidemicSimulator extends JFrame {
 					showErrorDialog("The probability must in the range 0 to 1.");
 				} else {
 					String name = newVirusName.getText();
-					int i = showConfirmDialog("A virus already exists with this name,"
-							+ " do you want to overwrite it?");
+					/* Requires user confirmation for overwriting an existing virus.
+					   Defaults to a yes value if the virus does not already exist.*/
+					int i = Tokens.getInstance().get(name) != null ? 
+							showConfirmDialog("A virus already exists with this name, do you want to overwrite it?") 
+							: JOptionPane.YES_OPTION;
+							
 					if (i == JOptionPane.YES_OPTION) {
 						Tokens.getInstance().set(name, prob);
 						newVirusDialog.setVisible(false);

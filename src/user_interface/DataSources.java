@@ -43,9 +43,11 @@ final class DataSources {
 		try {
 			File dataFolder = new File(Configuration.getInstance().getProperty("dataFolder"));
 			File[] subFolders = dataFolder.listFiles();
-			for (File file: subFolders) {
-				if (file.getName().equals(name)) {
-					return file.getAbsolutePath();
+			if (subFolders != null) {
+				for (File file: subFolders) {
+					if (file.getName().equals(name)) {
+						return file.getAbsolutePath();
+					}
 				}
 			}
 			return null;
@@ -65,8 +67,10 @@ final class DataSources {
 			List<Tuple2<String,String>> list = new ArrayList<Tuple2<String,String>>();
 			File dataFolder = new File(Configuration.getInstance().getProperty("dataFolder"));
 			File[] subFolders = dataFolder.listFiles();
-			for (File file: subFolders) {
-				list.add(Tuple2.of(file.getName(), file.getAbsolutePath()));
+			if (subFolders != null) {
+				for (File file: subFolders) {
+					list.add(Tuple2.of(file.getName(), file.getAbsolutePath()));
+				}
 			}
 			return list;
 		} catch (Exception e) {

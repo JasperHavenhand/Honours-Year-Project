@@ -66,6 +66,8 @@ final class Tokens {
 	Double get(String name) {
 		try {
 			return Double.parseDouble(properties.getProperty(name));
+		} catch (NullPointerException e) {
+			return null;
 		} catch (Exception e) {
 			Log.getLog(LOG_NAME).writeException(e);
 			e.printStackTrace();
