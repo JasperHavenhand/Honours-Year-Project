@@ -8,6 +8,7 @@ import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.text.NumberFormat;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -644,6 +645,7 @@ public final class EpidemicSimulator extends JFrame {
 	private void applyMerge() {
 		try {
 			if (tgh != null) {
+				mergeDuration.commitEdit();
 				List<String> errorMsgs = new ArrayList<String>(2);
 				Boolean error = false;
 				if (mergeStart.getValue() == null) {
@@ -660,10 +662,13 @@ public final class EpidemicSimulator extends JFrame {
 				} else {
 					long startTime = ((Date) mergeStart.getValue()).toInstant().toEpochMilli();
 					long duration = (Long) mergeDuration.getValue();
+					mergeDuration.setText(null);
 					tgh.mergeEdges(startTime, duration);
 				}
 			}
-		}  catch (NumberFormatException nfe) {
+		} catch (ParseException pe) {
+			showErrorDialog("The time amount must be in milliseconds.");
+		} catch (NumberFormatException nfe) {
 			showErrorDialog("The duration must be in milliseconds.");
 		} catch (Exception e) {
 			Log.getLog(LOG_NAME).writeException(e);
@@ -674,14 +679,18 @@ public final class EpidemicSimulator extends JFrame {
 	private void applyDelay() {
 		try {
 			if (tgh != null) {
+				delayTime.commitEdit();
 				if (delayTime.getValue() != null) {
 					long time = (Long) delayTime.getValue();
+					delayTime.setText(null);
 					tgh.delayEdges(time);
 				} else {
 					showErrorDialog("A time amount is required.");
 				}
 			}
-		}  catch (NumberFormatException nfe) {
+		} catch (ParseException pe) {
+			showErrorDialog("The time amount must be in milliseconds.");
+		} catch (NumberFormatException nfe) {
 			showErrorDialog("The time amount must be in milliseconds.");
 		} catch (Exception e) {
 			Log.getLog(LOG_NAME).writeException(e);
@@ -692,14 +701,18 @@ public final class EpidemicSimulator extends JFrame {
 	private void applyTempLimit() {
 		try {
 			if (tgh != null) {
+				tempLimit.commitEdit();
 				if (tempLimit.getValue() != null) {
-					int limit = (int) tempLimit.getValue();
+					int limit = Integer.parseInt(tempLimit.getText());
+					tempLimit.setText(null);
 					tgh.limitTemporality(limit);
 				} else {
 					showErrorDialog("A limit is required.");
 				}
 			}
-		}  catch (NumberFormatException nfe) {
+		} catch (ParseException pe) {
+			showErrorDialog("The time amount must be in milliseconds.");
+		} catch (NumberFormatException nfe) {
 			showErrorDialog("The limit must be an integer.");
 		} catch (Exception e) {
 			Log.getLog(LOG_NAME).writeException(e);
