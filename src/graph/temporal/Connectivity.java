@@ -65,8 +65,7 @@ class Connectivity {
 							edge.getTargetId().equals(source);
 					Boolean b2 = true;
 					if (lastTime != null) {
-						b2 = edge.getValidFrom() < lastTime &&
-								edge.getValidTo() > lastTime;
+						b2 = edge.getValidTo() > lastTime;
 					}
 					return (b1 && b2);
 				}
