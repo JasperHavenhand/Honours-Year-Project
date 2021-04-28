@@ -9,11 +9,6 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 
-/**
- * Based on the Log class from Sebastian Coope's COMP319 SMSManager. (ac.liv.comp319.utils.Log.java)
- * @author Jasper Havenhand
- * 
- */
 public final class Log {
 	
 	private File logFile;

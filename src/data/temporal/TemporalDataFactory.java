@@ -13,8 +13,6 @@ import utilities.Log;
 
 /**
  * The façade class for the temporalData package.
- * @author Jasper Havenhand
- *
  */
 public final class TemporalDataFactory {
 	

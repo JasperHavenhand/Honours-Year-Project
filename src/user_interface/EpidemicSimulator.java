@@ -766,7 +766,6 @@ public final class EpidemicSimulator extends JFrame {
 	
 	private void displayReachabilitySets() {
 		if (tgh != null) {
-			tgh.getReachabilitySets();
 			List<Tuple2<String, List<String>>> reachSets = tgh.getReachabilitySets();
 			Map<String, String> vertexNms = tgh.getVertexIDsToNames();
 			int size = reachSets.size();

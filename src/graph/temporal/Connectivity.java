@@ -46,13 +46,13 @@ class Connectivity {
 	}
 	
 	private static List<GradoopId> findReachableVertices(TemporalGraph graph, GradoopId source) {
-		List<GradoopId> visited = new ArrayList<GradoopId>();
+		ArrayList<GradoopId> visited = new ArrayList<GradoopId>();
 		visited.add(source);
 		return findReachableVertices(graph, source, visited, null);
 	}
 	
 	private static List<GradoopId> findReachableVertices(
-			TemporalGraph graph, GradoopId source, List<GradoopId> visited, Long lastTime) {
+			TemporalGraph graph, GradoopId source, ArrayList<GradoopId> visited, Long lastTime) {
 		try {
 			// Find all edges connected the source vertex which are active at lastTime.
 			List<TemporalEdge> edges = graph.getEdges().filter(new FilterFunction<TemporalEdge>() {
@@ -61,8 +61,8 @@ class Connectivity {
 				public boolean filter(TemporalEdge edge) throws Exception {
 					/* Edges are directed in Gradoop but are considered undirected in this usage
 					 * so both the source and target vertices have to be considered. */
-					Boolean b1 = edge.getSourceId().equals(source) ||
-							edge.getTargetId().equals(source);
+					Boolean b1 = edge.getSourceId().equals(source) && !visited.contains(edge.getTargetId())
+							|| edge.getTargetId().equals(source) && !visited.contains(edge.getSourceId());
 					Boolean b2 = true;
 					if (lastTime != null) {
 						b2 = edge.getValidTo() > lastTime;
@@ -76,15 +76,17 @@ class Connectivity {
 			
 			// Recursive calls for each vertex which could possibly be visited next.
 			for (TemporalEdge edge: edges) {
-				List<GradoopId> newVisited = visited;
-				// Again, both the source and target vertices are considered.
-				if (!visited.contains(edge.getSourceId())) {
-					newVisited.add(edge.getSourceId());
-					result.addAll(findReachableVertices(graph, edge.getSourceId(), newVisited, edge.getValidTo()));
-				} 
-				else if (!visited.contains(edge.getTargetId())) {
-					newVisited.add(edge.getTargetId());
-					result.addAll(findReachableVertices(graph, edge.getTargetId(), newVisited, edge.getValidTo()));
+				@SuppressWarnings("unchecked")
+				ArrayList<GradoopId> newVisited = (ArrayList<GradoopId>) visited.clone();
+				GradoopId nextVertex;
+				// Again, both the source and target vertices of the edge are considered.
+				nextVertex = !source.equals(edge.getSourceId()) ? edge.getSourceId(): edge.getTargetId();
+				newVisited.add(nextVertex);
+				List<GradoopId> list = findReachableVertices(graph, nextVertex, newVisited, edge.getValidTo());
+				for (GradoopId vertex: list) {
+					if (!result.contains(vertex)) {
+						result.add(vertex);
+					}
 				}
 			}
 			

@@ -1,11 +1,6 @@
 package data.temporal;
 import java.util.ArrayList;
 
-/**
- * 
- * @author Jasper Havenhand
- *
- */
 abstract class TemporalDataSource {
 	
 	abstract ArrayList<String> getGraphs();

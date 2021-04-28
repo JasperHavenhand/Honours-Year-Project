@@ -9,11 +9,6 @@ import java.util.HashMap;
 
 import utilities.Log;
 
-/**
- * 
- * @author Jasper Havenhand
- *
- */
 final class NSenseDataSource extends TemporalDataSource {
 	
 	private String inputPath;

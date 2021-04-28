@@ -9,11 +9,6 @@ import org.apache.flink.api.java.tuple.Tuple2;
 import utilities.Configuration;
 import utilities.Log;
 
-/**
- * 
- * @author Jasper Havenhand
- *
- */
 final class DataSources {
 	
 	private static DataSources instance = null;

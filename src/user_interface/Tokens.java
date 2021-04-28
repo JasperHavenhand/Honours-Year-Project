@@ -15,11 +15,6 @@ import org.apache.flink.api.java.tuple.Tuple2;
 import utilities.Configuration;
 import utilities.Log;
 
-/**
- * 
- * @author Jasper Havenhand
- *
- */
 final class Tokens {
 	
 	private static Tokens instance = null;
