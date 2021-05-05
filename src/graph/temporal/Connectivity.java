@@ -239,7 +239,7 @@ class Connectivity {
 							 * and getting the edges at those indexes.*/
 							List<Integer> rdmIndexes = new ArrayList<Integer>(limit);
 							while (rdmIndexes.size() < limit) {
-								int i = rdm.nextInt(limit);
+								int i = rdm.nextInt(filteredEdges.size()-1);
 								if (!rdmIndexes.contains(i)) {
 									rdmIndexes.add(i);
 								}
